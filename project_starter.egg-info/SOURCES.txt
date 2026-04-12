@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+app/cli.py
+app/config.py
+app/database.py
+app/main.py
+project_starter.egg-info/PKG-INFO
+project_starter.egg-info/SOURCES.txt
+project_starter.egg-info/dependency_links.txt
+project_starter.egg-info/requires.txt
+project_starter.egg-info/top_level.txt
