@@ -6,11 +6,10 @@ from jinja2 import Environment, FileSystemLoader
 from app.config import get_settings
 from pathlib import Path
 
-
-template_env = Environment(loader = FileSystemLoader("app/templates",), )
+BASE_DIR = Path(__file__).resolve().parent.parent
+template_env = Environment(loader = FileSystemLoader(BASE_DIR / "templates",), )
 template_env.globals['get_flashed_messages'] = get_flashed_messages
 templates = Jinja2Templates(env=template_env)
-BASE_DIR = Path(__file__).resolve().parent.parent
 static_files = StaticFiles(directory=BASE_DIR / "static")
 
 router = APIRouter(tags=["Jinja Based Endpoints"], include_in_schema=get_settings().env.lower() in ["dev","development"])
