@@ -1,12 +1,171 @@
+{# PATH: app/templates/admin.html #}
 {% extends "authenticated-base.html" %}
 
 {% block external_js %}
 <script src="{{ url_for('static', path='js/app.js')}}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
+{% block additional_styles %}
+<style>
+   .bg-gradient-primary { background: linear-gradient(to right, #da8cff, #9a55ff) !important; }
+   .bg-gradient-info { background: linear-gradient(to right, #90caf9, #047edf 99%) !important; }
+   .bg-gradient-success { background: linear-gradient(to right, #84d9d2, #07cdae) !important; }
+   .bg-gradient-danger { background: linear-gradient(to right, #ffbf96, #fe7096) !important; }
+   .bg-gradient-visitor { background: linear-gradient(to right, #4facfe, #00f2fe) !important; }
+
+   .card-img-holder {
+      position: absolute;
+      top: 0;
+      right: 0;
+      opacity: 0.2;
+      padding: 1rem;
+   }
+
+   .metric-card {
+      position: relative;
+      overflow: hidden;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      transition: transform 0.3s;
+      min-height: 140px; 
+   }
+
+   .metric-card:hover { transform: translateY(-5px); }
+   
+   .metric-link { color: inherit !important; text-decoration: none !important; display: block; height: 100%; }
+</style>
+{% endblock %}
 
 {% block subpage_content %}
+{% if stats %}
+<div class="mb-4">
+   <h1 class="h3 fw-bold">Overview Dashboard</h1>
+   <p class="text-muted">Tracking platform growth and moderation activity.</p>
+</div>
 
-   I am the admin page
+<div class="row g-4 mb-5">
+   <div class="col">
+      <div class="card metric-card bg-gradient-primary shadow h-100">
+         <div class="card-body d-flex flex-column">
+            <div class="card-img-holder"><span class="material-symbols-outlined display-4">event</span></div>
+            <h6 class="fw-normal">Total Events</h6>
+            <h2 class="mb-0 mt-auto">{{ stats.total_events if stats.total_events is not none else '0' }}</h2>
+            <small>Database Total</small>
+         </div>
+      </div>
+   </div>
 
+   <div class="col">
+      <div class="card metric-card bg-gradient-visitor shadow h-100">
+         <div class="card-body d-flex flex-column">
+            <div class="card-img-holder"><span class="material-symbols-outlined display-4">group</span></div>
+            <h6 class="fw-normal">Site Visitors</h6>
+            <h2 class="mb-0 mt-auto">{{ stats.total_visitors if stats.total_visitors is not none else '0' }}</h2>
+            <small>Unique Visits</small>
+         </div>
+      </div>
+   </div>
+
+   <div class="col">
+      <div class="card metric-card bg-gradient-info shadow h-100">
+         <div class="card-body d-flex flex-column">
+            <div class="card-img-holder"><span class="material-symbols-outlined display-4">verified</span></div>
+            <h6 class="fw-normal">Approved Weekly</h6>
+            <h2 class="mb-0 mt-auto">{{ stats.approved_this_week if stats.approved_this_week is not none else '0' }}</h2>
+            <small>Live on Site</small>
+         </div>
+      </div>
+   </div>
+
+   <div class="col">
+      <div class="card metric-card bg-gradient-danger shadow h-100">
+         <a href="/admin/reports" class="metric-link">
+            <div class="card-body d-flex flex-column h-100">
+               <div class="card-img-holder"><span class="material-symbols-outlined display-4">flag</span></div>
+               <h6 class="fw-normal">Flagged Reports</h6>
+               <h2 class="mb-0 mt-auto">{{ stats.total_reports if stats.total_reports is not none else '0' }}</h2>
+               <small>Action Required</small>
+            </div>
+         </a>
+      </div>
+   </div>
+
+   <div class="col">
+      <div class="card metric-card bg-gradient-success shadow h-100">
+         <a href="/admin/content" class="metric-link">
+            <div class="card-body d-flex flex-column h-100">
+               <div class="card-img-holder"><span class="material-symbols-outlined display-4">photo_library</span></div>
+               <h6 class="fw-normal">Pending Approvals</h6>
+               <h2 class="mb-0 mt-auto">{{ (stats.pending_photos or 0) + (stats.pending_reviews or 0) }}</h2>
+               <small>Media & Reviews</small>
+            </div>
+         </a>
+      </div>
+   </div>
+</div>
+
+<div class="row mb-5">
+   <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+         <div class="card-body">
+            <h5 class="card-title">Daily Traffic Overview</h5>
+            <div style="height: 300px;">
+               <canvas id="trafficChart"></canvas>
+            </div>
+         </div>
+      </div>
+   </div>
+   <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+         <div class="card-body text-center d-flex flex-column justify-content-center">
+            <span class="material-symbols-outlined display-1 text-primary-subtle">monitoring</span>
+            <h4 class="mt-3">Live Monitoring</h4>
+            <p class="text-muted small">Tracking visits across the Caribbean region.</p>
+            <button onclick="window.location.reload()" class="btn btn-outline-primary btn-sm mx-auto">Refresh Data</button>
+         </div>
+      </div>
+   </div>
+</div>
+{% endif %}
+
+{% block admin_subcontent %}{% endblock %}
+{% endblock %}
+
+{% block subpage_scripts %}
+{% if stats and chart_labels %}
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+      const ctx = document.getElementById('trafficChart').getContext('2d');
+      new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: {{ chart_labels | safe }},
+              datasets: [{
+                  label: 'Visits',
+                  data: {{ chart_data | safe }},
+                  borderColor: '#9a55ff',
+                  backgroundColor: 'rgba(154, 85, 255, 0.1)',
+                  fill: true,
+                  tension: 0.4
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                  y: { 
+                      beginAtZero: true, 
+                      grid: { color: '#f0f0f0' },
+                      ticks: { stepSize: 1, precision: 0 }
+                  },
+                  x: { grid: { display: false } }
+              }
+          }
+      });
+   });
+</script>
+{% endif %}
 {% endblock %}
