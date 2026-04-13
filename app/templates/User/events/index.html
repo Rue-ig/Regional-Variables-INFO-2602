@@ -1,0 +1,85 @@
+{# PATH: app/templates/User/events/index.html #}
+{% extends "authenticated-base.html" if user else "base.html" %}
+
+{% block title %}Events – Caribbean Events{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/events.css">
+{% endblock %}
+
+{% block subpage_content %}
+<div class="container-fluid {% if not user %}mt-5{% endif %}">
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <h1>Explore Events</h1>
+    <a href="/events/map" class="btn btn-outline-primary">View Map</a>
+  </div>
+
+  <form method="get" action="/events" class="filter-bar card p-3 mb-4 shadow-sm">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="keyword" placeholder="Search events…" value="{{ filters.keyword }}"
+          class="form-control">
+      </div>
+      <div class="col-md-2">
+        <select name="island" class="form-select">
+          <option value="">All Islands</option>
+          {% for island in islands %}
+          <option value="{{ island }}" {% if filters.island==island %}selected{% endif %}>{{ island }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+          <option value="{{ cat }}" {% if filters.category==cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+        <a href="/events" class="btn btn-light">Clear</a>
+      </div>
+    </div>
+  </form>
+
+  <p class="text-muted">{{ total }} event{{ 's' if total != 1 else '' }} found</p>
+
+  {% if events %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for event in events %}
+    <div class="col">
+      <div class="card h-100 event-card shadow-sm">
+        {% if event.image_url %}
+        <img src="{{ event.image_url }}" class="card-img-top" alt="{{ event.title }}"
+          style="height: 200px; object-fit: cover;">
+        {% else %}
+        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+          <span style="font-size: 3rem;">🎉</span>
+        </div>
+        {% endif %}
+        <div class="card-body">
+          <div class="mb-2">
+            <span class="badge bg-info text-dark">{{ event.island.value }}</span>
+            <span class="badge bg-secondary">{{ event.category.value }}</span>
+          </div>
+          <h5 class="card-title"><a href="/events/{{ event.id }}" class="text-decoration-none text-dark">{{ event.title
+              }}</a></h5>
+          <p class="card-text small text-muted mb-1">📍 {{ event.venue }}</p>
+          <p class="card-text small mb-2">📅 {{ event.date.strftime('%a, %d %b %Y') }}</p>
+          <p class="fw-bold text-primary">
+            {% if event.price is none %}Free{% else %}TT${{ "%.2f"|format(event.price) }}{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <p class="lead">No events found matching your filters.</p>
+    <a href="/events" class="btn btn-primary">Clear all filters</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
