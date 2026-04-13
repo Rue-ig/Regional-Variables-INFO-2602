@@ -7,7 +7,6 @@ from app.repositories.user import UserRepository
 from app.utilities.flash import flash
 from app.config import get_settings
 
-# View route responsible for UI
 @router.get("/login", response_class=HTMLResponse)
 async def login_view(request: Request):
     return templates.TemplateResponse(
@@ -15,7 +14,6 @@ async def login_view(request: Request):
         name="login.html",
     )
 
-#Action route responsible for actually logging in the person
 @router.post("/login", response_class=HTMLResponse)
 async def login_action_ajax(
     db: SessionDep,
