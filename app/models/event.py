@@ -1,8 +1,9 @@
 # PATH: app/models/event.py
-from sqlmodel import Field, SQLModel
-from typing import Optional
+from sqlmodel import Field, SQLModel, Relationship
+from typing import List, Optional
 from datetime import datetime
 from enum import Enum
+from app.models.album import AlbumEventLink
 
 class Island(str, Enum):
     Trinidad = "Trinidad"
@@ -60,3 +61,7 @@ class Event(EventBase, table=True):
     created_by: Optional[int] = Field(default=None, foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    albums: List["Album"] = Relationship(back_populates="events", link_model=AlbumEventLink)
+    reviews: List["Review"] = Relationship(back_populates="event")
+    photos: List["Photo"] = Relationship(back_populates="event")
