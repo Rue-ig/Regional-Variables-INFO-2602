@@ -1,0 +1,20 @@
+from sqlmodel import SQLModel, Field
+from typing import Optional
+from datetime import datetime
+from enum import Enum
+
+class ReportReason(str, Enum):
+    SPAM = "Spam"
+    INAPPROPRIATE = "Inappropriate"
+    HARASSMENT = "Harassment"
+    OFFENSIVE = "Offensive"
+    OTHER = "Other"
+
+class Report(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    photo_id: Optional[int] = Field(default=None, foreign_key="photo.id", nullable=True)
+    review_id: Optional[int] = Field(default=None, foreign_key="review.id", nullable=True)
+    reason: ReportReason
+    details: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
