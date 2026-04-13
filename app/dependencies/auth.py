@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, status, Request
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -13,15 +13,19 @@ async def get_current_user(request:Request, db:SessionDep)->User:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
     token = request.cookies.get("access_token")
 
     if token is None:
         raise credentials_exception
+    
     try:
         payload = jwt.decode(token, get_settings().secret_key, algorithms=[get_settings().jwt_algorithm])
         user_id = payload.get("sub",None)
+        
     except InvalidTokenError as e:
         print("Invalid token error: ", e)
+        
         raise credentials_exception
 
     repo = UserRepository(db)
@@ -29,12 +33,25 @@ async def get_current_user(request:Request, db:SessionDep)->User:
 
     if user is None:
         raise credentials_exception
+    
     return user
+
+async def get_optional_user(request: Request, db: SessionDep):
+    try:
+        user = await get_current_user(request, db) 
+        return user
+    
+    except HTTPException:
+        return None
+
+UserDep = Annotated[Optional[User], Depends(get_optional_user)]
 
 async def is_logged_in(request: Request, db:SessionDep):
     try:
         await get_current_user(request, db)
+        
         return True
+    
     except Exception:
         return False
 
