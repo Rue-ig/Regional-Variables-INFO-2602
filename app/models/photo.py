@@ -1,5 +1,5 @@
 # PATH: app/models/photo.py
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship
 from typing import Optional
 from datetime import datetime
 
@@ -13,3 +13,6 @@ class Photo(PhotoBase, table=True):
     user_id: int = Field(foreign_key="user.id", index=True)
     approved: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    user: "User" = Relationship(back_populates="photos")
+    event: "Event" = Relationship(back_populates="photos")
