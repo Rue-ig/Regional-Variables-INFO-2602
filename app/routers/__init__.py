@@ -1,15 +1,16 @@
 # PATH: app/routers/__init__.py
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from app.utilities.flash import get_flashed_messages
 from jinja2 import Environment, FileSystemLoader
 from app.config import get_settings
 
-template_env = Environment(loader=FileSystemLoader("app/templates"))
+BASE_DIR = Path(__file__).resolve().parent.parent
+template_env = Environment(loader=FileSystemLoader(BASE_DIR / "templates"))
 template_env.globals['get_flashed_messages'] = get_flashed_messages
 templates = Jinja2Templates(env=template_env)
-static_files = StaticFiles(directory="app/static")
+static_files = StaticFiles(directory= BASE_DIR / "static")
 
 router = APIRouter(
     tags=["Jinja Based Endpoints"],
