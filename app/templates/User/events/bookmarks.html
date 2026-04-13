@@ -1,0 +1,223 @@
+{% extends "authenticated-base.html" %}
+
+{% block title %}My Space{% endblock %}
+
+{% block subpage_content %}
+<div class="row g-3 mb-5">
+  <div class="col-md-4">
+    <div class="p-3 bg-white rounded-4 shadow-sm border-start border-primary border-4">
+      <div class="d-flex align-items-center">
+        <span class="material-symbols-outlined text-primary me-3">reviews</span>
+        <div>
+          <h6 class="mb-0 fw-bold">{{ total_reviews or 0 }} Reviews</h6>
+          <small class="text-muted">Total Reviews</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="p-3 bg-white rounded-4 shadow-sm border-start border-info border-4">
+      <div class="d-flex align-items-center">
+        <span class="material-symbols-outlined text-info me-3">photo_library</span>
+        <div>
+          <h6 class="mb-0 fw-bold">{{ total_photos or 0 }} Photos</h6>
+          <small class="text-muted">Total Uploads</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="p-3 bg-white rounded-4 shadow-sm border-start border-warning border-4">
+      <div class="d-flex align-items-center">
+        <span class="material-symbols-outlined text-warning me-3">auto_awesome_motion</span>
+        <div>
+          <h6 class="mb-0 fw-bold">{{ total_albums or 0 }} Albums</h6>
+          <small class="text-muted">Total Albums</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="my-5 opacity-25">
+
+<div class="mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="h5 fw-bold mb-0 text-dark">My Saved Events</h3>
+    <p class="text-muted small mb-0">Your personal collection of bookmarked Caribbean experiences.</p>
+  </div>
+
+  {% if events %}
+  <div class="row g-4">
+    {% for event in events %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="position-relative">
+          <img src="{{ event.image_url or '/static/img/default-event.jpg' }}" class="card-img-top"
+            style="height: 200px; object-fit: cover;" alt="{{ event.title }}">
+          <div class="position-absolute top-0 end-0 m-3">
+            <span class="badge bg-white text-dark shadow-sm">{{ event.category }}</span>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-1 text-truncate">{{ event.title }}</h5>
+          <div class="d-flex align-items-center text-muted small mb-3">
+            <span class="material-symbols-outlined fs-6 me-1">location_on</span>
+            {{ event.venue }}, {{ event.island }}
+          </div>
+
+          <div class="bg-light rounded-3 p-3 mb-3">
+            <div class="row g-3">
+              <div class="col-6 border-end">
+                <label class="d-block text-uppercase fw-bold text-muted mb-1" style="font-size: 0.6rem;">My
+                  Rating</label>
+                {% if event.reviews %}
+                <div class="d-flex align-items-center">
+                  <span class="fw-bold h6 mb-0">{{ event.reviews[0].rating }}</span>
+                  <span class="material-symbols-outlined text-warning fs-5 ms-1">star</span>
+                  {% if not event.reviews[0].approved %}
+                  <span class="ms-2 badge rounded-pill bg-warning text-dark" style="font-size: 0.5rem;">Pending</span>
+                  {% endif %}
+                </div>
+                {% else %}
+                <span class="text-muted small d-block">No rating</span>
+                {% endif %}
+              </div>
+
+              <div class="col-6">
+                <label class="d-block text-uppercase fw-bold text-muted mb-1" style="font-size: 0.6rem;">My
+                  Albums</label>
+                <div class="text-truncate small">
+                  {% if event.albums %}
+                  {{ event.albums|length }} Saved
+                  {% else %}
+                  Not filed
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="d-block text-uppercase fw-bold text-muted mb-2" style="font-size: 0.6rem;">My Uploads</label>
+            <div class="d-flex gap-2 flex-wrap">
+              {% if event.photos %}
+              {% for photo in event.photos[:4] %}
+              <div class="position-relative">
+                <img src="{{ photo.filepath }}" class="rounded-2 border"
+                  style="width: 45px; height: 45px; object-fit: cover;">
+                {% if not photo.approved %}
+                <div
+                  class="position-absolute inset-0 bg-dark bg-opacity-50 rounded-2 d-flex align-items-center justify-content-center"
+                  title="Pending Approval">
+                  <span class="material-symbols-outlined text-white fs-6">schedule</span>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+              {% else %}
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-2 border border-dashed d-flex align-items-center justify-content-center text-muted"
+                  style="width: 45px; height: 45px; border-style: dashed !important;">
+                  <span class="material-symbols-outlined fs-6">add_a_photo</span>
+                </div>
+                <span class="text-muted small">No photos</span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-white border-0 p-4 pt-0 mt-auto">
+          <div class="d-grid gap-2">
+            <a href="/events/{{ event.id }}" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">View Full
+              Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 bg-white rounded-4 shadow-sm border border-dashed">
+    <span class="material-symbols-outlined display-1 text-muted opacity-25">bookmark_border</span>
+    <h4 class="mt-3">Your list is empty</h4>
+    <p class="text-muted">Start exploring and save your favorite events here.</p>
+    <a href="/events" class="btn btn-primary rounded-pill px-4">Find Events</a>
+  </div>
+  {% endif %}
+</div>
+
+<hr class="my-5 opacity-25">
+
+<div class="mb-5">
+  <h3 class="h5 fw-bold mb-4">My Reviews</h3>
+  {% if user_reviews %}
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="list-group list-group-flush rounded-4">
+      {% for review in user_reviews %}
+      <div class="list-group-item p-4 border-0 border-bottom">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold mb-0 text-primary">{{ review.event.title }}</h6>
+          <div class="d-flex align-items-center bg-warning-subtle px-2 py-1 rounded-pill">
+            <span class="fw-bold text-warning-emphasis me-1">{{ review.rating }}</span>
+            <span class="material-symbols-outlined text-warning fs-6">star</span>
+          </div>
+        </div>
+        <p class="text-muted mb-0 small">"{{ review.comment }}"</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted small">You haven't written any reviews yet.</p>
+  {% endif %}
+</div>
+
+<div class="mb-5">
+  <h3 class="h5 fw-bold mb-4">My Photos</h3>
+  {% if user_photos %}
+  <div class="row g-3">
+    {% for photo in user_photos %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <div class="ratio ratio-1x1 position-relative">
+        <img src="{{ photo.filepath }}" class="rounded-3 shadow-sm border w-100 h-100" style="object-fit: cover;"
+          alt="Upload">
+        {% if not photo.approved %}
+        <div class="position-absolute top-0 start-0 m-2">
+          <span class="badge rounded-pill bg-warning text-dark" style="font-size: 0.6rem;">Pending</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted small">You haven't uploaded any photos yet.</p>
+  {% endif %}
+</div>
+
+<div class="mb-5">
+  <h3 class="h5 fw-bold mb-4">My Albums</h3>
+  {% if user_albums %}
+  <div class="row g-4">
+    {% for album in user_albums %}
+    <div class="col-12 col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 d-flex flex-row align-items-center">
+        <div class="bg-info-subtle text-info p-3 rounded-3 me-3">
+          <span class="material-symbols-outlined">folder_special</span>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0">{{ album.name }}</h6>
+          <p class="text-muted small mb-0">{{ album.event_count }} Items</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted small">You haven't created any albums yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
