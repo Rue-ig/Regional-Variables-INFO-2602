@@ -1,0 +1,74 @@
+{# PATH: app/templates/Admin/reports.html #}
+{% extends "authenticated-base.html" %}
+
+{% block title %}Flagged Content – Admin{% endblock %}
+
+{% block subpage_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Flagged Content Reports</h1>
+        <span class="badge bg-danger">{{ reports|length }} Active Reports</span>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Reason</th>
+                        <th>Reporter Details</th>
+                        <th>Target Content</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>
+                            {% if report.photo_id %}
+                            <span class="badge bg-info">Photo</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">Review</span>
+                            {% endif %}
+                        </td>
+                        <td><strong class="text-danger">{{ report.reason }}</strong></td>
+                        <td>
+                            <small class="d-block text-muted">{{ report.created_at.strftime('%d %b, %H:%M') }}</small>
+                            <p class="mb-0 small">{{ report.details or 'No additional details provided.' }}</p>
+                        </td>
+                        <td>
+                            {% if report.photo_id %}
+                            <a href="/events/{{ report.photo.event_id }}" target="_blank"
+                                class="btn btn-sm btn-outline-secondary">View Event</a>
+                            {% else %}
+                            <a href="/events/{{ report.review.event_id }}" target="_blank"
+                                class="btn btn-sm btn-outline-secondary">View Event</a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <form action="/admin/reports/{{ report.id }}/dismiss" method="POST">
+                                    <button class="btn btn-sm btn-light text-muted"
+                                        title="Dismiss Report">Dismiss</button>
+                                </form>
+
+                                <form action="/admin/reports/{{ report.id }}/delete-content" method="POST"
+                                    onsubmit="return confirm('This will permanently delete the flagged content. Proceed?');">
+                                    <button class="btn btn-sm btn-danger">Delete Content</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not reports %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">No flagged content reported.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{# PATH: app/templates/Admin/events/content.html #}
+{% extends "authenticated-base.html" %}
+
+{% block title %}Content Approvals – Admin{% endblock %}
+
+{% block subpage_content %}
+<div class="container-fluid">
+  <h1 class="h3 mb-4">Pending Approvals</h1>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Reviews Awaiting Approval</h5>
+        </div>
+        <div class="card-body">
+          {% if pending_reviews %}
+          {% for review in pending_reviews %}
+          <div class="border-bottom pb-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge bg-warning text-dark mb-1">Rating: {{ review.rating }}/5</span>
+                <p class="mb-1 text-dark">{{ review.body }}</p>
+                <small class="text-muted">Event ID: {{ review.event_id }}</small>
+              </div>
+              <div class="d-flex gap-2">
+                <form action="/admin/reviews/{{ review.id }}/approve" method="POST">
+                  <button class="btn btn-sm btn-success">Approve</button>
+                </form>
+                <form action="/reviews/{{ review.id }}/delete" method="POST"
+                  onsubmit="return confirm('Delete this review?');">
+                  <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-center py-4 text-muted">No pending reviews.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Photos Awaiting Approval</h5>
+        </div>
+        <div class="card-body">
+          {% if pending_photos %}
+          {% for photo in pending_photos %}
+          <div class="border-bottom pb-3 mb-3">
+            <div class="d-flex gap-3">
+              <img src="{{ photo.filepath }}" class="rounded shadow-sm"
+                style="width: 100px; height: 100px; object-fit: cover;">
+              <div class="flex-grow-1">
+                <p class="mb-1"><strong>Caption:</strong> {{ photo.caption or 'None' }}</p>
+                <div class="d-flex gap-2">
+                  <form action="/admin/photos/{{ photo.id }}/approve" method="POST">
+                    <button class="btn btn-sm btn-success">Approve</button>
+                  </form>
+                  <form action="/photos/{{ photo.id }}/delete" method="POST"
+                    onsubmit="return confirm('Permanently delete this photo and file?');">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-center py-4 text-muted">No pending photos.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{# PATH: app/templates/Admin/events/events.html #}
+{% extends "authenticated-base.html" %}
+
+{% block title %}Manage Events{% endblock %}
+
+{% block subpage_content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Events</h1>
+    <a href="/admin/events/new" class="btn btn-primary">+ New Event</a>
+  </div>
+
+  {% if pending %}
+  <div class="card border-warning mb-5">
+    <div class="card-header bg-warning text-dark fw-bold">Pending Approval ({{ pending|length }})</div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Island</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in pending %}
+          <tr>
+            <td>{{ event.title }}</td>
+            <td>{{ event.island.value }}</td>
+            <td>{{ event.date.strftime('%d %b %Y') }}</td>
+            <td>
+              <form method="post" action="/admin/events/{{ event.id }}/publish" class="d-inline">
+                <button class="btn btn-sm btn-success">Publish</button>
+              </form>
+              <a href="/admin/events/{{ event.id }}/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-white fw-bold">All Events</div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Island</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+          <tr>
+            <td><a href="/events/{{ event.id }}" class="text-decoration-none">{{ event.title }}</a></td>
+            <td>{{ event.island.value }}</td>
+            <td>
+              <span class="badge bg-{{ 'success' if event.status.value == 'published' else 'secondary' }}">
+                {{ event.status.value }}
+              </span>
+            </td>
+            <td>
+              <a href="/admin/events/{{ event.id }}/edit" class="btn btn-sm btn-light">Edit</a>
+              <form method="post" action="/admin/events/{{ event.id }}/delete" class="d-inline"
+                onsubmit="return confirm('Delete?')">
+                <button class="btn btn-sm text-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
