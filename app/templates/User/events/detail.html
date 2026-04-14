@@ -1,5 +1,4 @@
 {# PATH: app/templates/User/events/detail.html #}
-
 {% extends "authenticated-base.html" %}
 {% block title %}{{ event.title }} – Caribbean Events{% endblock %}
 {% block additional_styles %}
@@ -210,156 +209,390 @@
     max-width: 60ch;
   }
 
-  .playlist-section {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-bottom: 16px;
+  #albumModalBackdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    background: rgba(15, 23, 42, .55);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
   }
 
-  .playlist-item {
+  #albumModalBackdrop.open {
+    display: flex;
+  }
+
+  #albumModal {
+    background: #fff;
+    border-radius: 20px;
+    width: min(480px, 94vw);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, .22), 0 2px 8px rgba(15, 23, 42, .08);
+    overflow: hidden;
+    animation: modalIn .22s cubic-bezier(.34, 1.56, .64, 1);
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(.97);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .album-modal-header {
     display: flex;
     align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
   }
 
-  .playlist-item:hover {
-    background-color: #f9fafb;
-  }
-
-  .playlist-checkbox {
-    margin-right: 12px;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  .playlist-info {
-    flex: 1;
-  }
-
-  .playlist-name {
-    font-weight: 500;
-    color: #1f2937;
-  }
-
-  .playlist-count {
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 2px;
-  }
-
-  .new-playlist-btn {
+  .album-modal-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px;
-    background-color: #f3f4f6;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-bottom: 12px;
   }
 
-  .new-playlist-btn:hover {
-    background-color: #e5e7eb;
+  .album-modal-header h3 .material-symbols-outlined {
+    font-size: 20px;
+    color: #6366f1;
   }
 
-  .new-playlist-icon {
+  .album-modal-close {
+    background: #f1f5f9;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
     font-size: 18px;
-    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: background .15s, color .15s;
   }
 
-  .new-playlist-form {
+  .album-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .album-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  #inlineNewAlbumForm {
     display: none;
-    padding: 12px;
-    background-color: #f9fafb;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    animation: fadeSlideDown .18s ease;
   }
 
-  .new-playlist-form input,
-  .new-playlist-form textarea {
+  @keyframes fadeSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  #inlineNewAlbumForm label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #64748b;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  #inlineNewAlbumForm input,
+  #inlineNewAlbumForm textarea {
     width: 100%;
-    margin-bottom: 8px;
-    padding: 8px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    padding: 9px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
     font-size: 14px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    transition: border-color .15s;
+    margin-bottom: 10px;
+    box-sizing: border-box;
   }
 
-  .new-playlist-form textarea {
+  #inlineNewAlbumForm input:focus,
+  #inlineNewAlbumForm textarea:focus {
+    border-color: #6366f1;
+  }
+
+  #inlineNewAlbumForm textarea {
     resize: vertical;
+    min-height: 60px;
   }
 
-  .form-buttons {
+  .inline-form-actions {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
   }
 
-  .form-buttons button {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
+  .btn-inline-cancel {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all .15s;
+  }
+
+  .btn-inline-cancel:hover {
+    background: #f1f5f9;
+  }
+
+  .btn-inline-create {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, .28);
+    transition: opacity .15s, transform .15s;
+  }
+
+  .btn-inline-create:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+  }
+
+  .new-album-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    margin-bottom: 10px;
+    border: 1.5px dashed #c7d2fe;
+    border-radius: 12px;
+    background: #f5f3ff;
+    color: #6366f1;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+
+  .new-album-trigger:hover {
+    background: #ede9fe;
+    border-color: #a5b4fc;
+  }
+
+  .new-album-trigger .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .album-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .album-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1.5px solid #f1f5f9;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    user-select: none;
+  }
+
+  .album-row:hover {
+    border-color: #c7d2fe;
+    background: #fafafa;
+  }
+
+  .album-row.selected {
+    border-color: #6366f1;
+    background: #f5f3ff;
+  }
+
+  .album-row-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .album-row-icon .material-symbols-outlined {
+    font-size: 18px;
+    color: #4f46e5;
+  }
+
+  .album-row.selected .album-row-icon {
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+  }
+
+  .album-row.selected .album-row-icon .material-symbols-outlined {
+    color: #fff;
+  }
+
+  .album-row-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .album-row-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .album-row-count {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 1px;
+  }
+
+  .album-row-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid #cbd5e1;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+  }
+
+  .album-row.selected .album-row-check {
+    background: #6366f1;
+    border-color: #6366f1;
+  }
+
+  .album-row-check::after {
+    content: '';
+    display: none;
+    width: 5px;
+    height: 9px;
+    border: 2px solid #fff;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+
+  .album-row.selected .album-row-check::after {
+    display: block;
+  }
+
+  .album-modal-footer {
+    padding: 14px 24px 18px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-modal-done {
+    padding: 9px 24px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, .3);
+    transition: opacity .15s, transform .15s;
+  }
+
+  .btn-modal-done:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+  }
+
+  .album-empty-state {
+    text-align: center;
+    padding: 24px 16px;
+    color: #94a3b8;
     font-size: 14px;
   }
 
-  .btn-cancel {
-    background-color: #e5e7eb;
-    color: #374151;
-  }
-
-  .btn-cancel:hover {
-    background-color: #d1d5db;
-  }
-
-  .btn-create {
-    background-color: #10b981;
-    color: white;
-  }
-
-  .btn-create:hover {
-    background-color: #059669;
-  }
-
-  .btn-done {
-    padding: 8px 16px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  .btn-done:hover {
-    background-color: #2563eb;
+  .album-empty-state .material-symbols-outlined {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 8px;
+    opacity: .4;
   }
 
   .success-toast {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background-color: #2e2e2e;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    z-index: 10000;
-    animation: slideIn 0.3s ease-out;
+    background: #0f172a;
+    color: #fff;
+    padding: 11px 18px;
+    border-radius: 10px;
+    z-index: 10100;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .22);
+    animation: toastIn .25s cubic-bezier(.34, 1.56, .64, 1);
   }
 
-  @keyframes slideIn {
+  @keyframes toastIn {
     from {
-      transform: translateX(100%);
       opacity: 0;
+      transform: translateX(40px);
     }
 
     to {
-      transform: translateX(0);
       opacity: 1;
+      transform: translateX(0);
     }
   }
 </style>
@@ -368,6 +601,7 @@
 {% block subpage_content %}
 <div class="container-fluid">
   <div class="row">
+
     <div class="col-lg-8">
       <div class="mb-3">
         <span class="badge bg-info">{{ event.island.value }}</span>
@@ -405,9 +639,11 @@
                 style="font-size:14px;font-variation-settings:'FILL' 0;">favorite</span>
               <span class="heart-count">{{ photo.hearts or 0 }}</span>
             </button>
-            <button class="report-btn" data-item-id="{{ photo.id }}" data-item-type="photo"
-              data-item-title="{{ photo.title }}">
-              Report Photo
+            <button class="report-btn"
+              style="position:absolute;top:5px;left:5px;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;"
+              data-bs-toggle="modal" data-bs-target="#reportModal" data-item-id="{{ photo.id }}" data-item-type="photo"
+              data-item-title="{{ photo.caption or 'Photo' }}">
+              Report
             </button>
             {% if user and (user.id == photo.user_id or user.role == 'admin') %}
             <form action="/photos/{{ photo.id }}/delete" method="POST">
@@ -446,6 +682,7 @@
           <span class="ms-2 badge bg-warning text-dark">★ {{ avg_rating }}</span>
           {% endif %}
         </h3>
+
         {% if reviews %}
         {% for review in reviews %}
         <div class="card mb-3 border-0 shadow-sm" id="review-{{ review.id }}">
@@ -464,7 +701,6 @@
               {% endif %}
             </div>
             <p class="mb-2">{{ review.body }}</p>
-
             <div class="d-flex align-items-center gap-2 mb-3">
               {% if review.user and review.user.avatar_url %}
               <img src="{{ review.user.avatar_url }}" class="reviewer-avatar" alt="{{ review.user.username }}">
@@ -478,23 +714,20 @@
                 {{ review.created_at.strftime('%d %b %Y') }}
               </small>
             </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
               <div class="d-flex align-items-center gap-2">
-                <button
-                  class="vote-btn up {% if user_review_votes and user_review_votes.get(review.id) == 'up' %}active{% endif %}"
+                <button class="vote-btn up {% if (user_review_votes or {}).get(review.id) == 'up' %}active{% endif %}"
                   data-review-id="{{ review.id }}" data-vote="up" onclick="voteReview(this)">
                   <span class="material-symbols-outlined" style="font-size:14px;">thumb_up</span>
                   <span class="up-count">{{ review.upvotes or 0 }}</span>
                 </button>
                 <button
-                  class="vote-btn down {% if user_review_votes and user_review_votes.get(review.id) == 'down' %}active{% endif %}"
+                  class="vote-btn down {% if (user_review_votes or {}).get(review.id) == 'down' %}active{% endif %}"
                   data-review-id="{{ review.id }}" data-vote="down" onclick="voteReview(this)">
                   <span class="material-symbols-outlined" style="font-size:14px;">thumb_down</span>
                   <span class="down-count">{{ review.downvotes or 0 }}</span>
                 </button>
               </div>
-
               <button type="button" class="btn btn-sm btn-outline-danger report-btn" data-bs-toggle="modal"
                 data-bs-target="#reportModal" data-item-id="{{ review.id }}" data-item-type="review"
                 data-item-title="Review by {{ review.user.username if review.user else 'User' }}">
@@ -544,9 +777,7 @@
             {% if event.price %}${{ "%.2f"|format(event.price) }}{% else %}Free{% endif %}
           </p>
           {% if event.source_url %}
-          <a href="{{ event.source_url }}" target="_blank" class="btn btn-primary w-100 mb-2">
-            Visit Official Site
-          </a>
+          <a href="{{ event.source_url }}" target="_blank" class="btn btn-primary w-100 mb-2">Visit Official Site</a>
           {% endif %}
           <button class="btn w-100 mb-3 {{ 'btn-success' if is_bookmarked else 'btn-outline-primary' }}"
             onclick="toggleBookmark(this)" data-event-id="{{ event.id }}">
@@ -572,9 +803,8 @@
               </button>
             </form>
           </div>
-
           <hr class="opacity-25">
-          <button onclick="openAddToAlbumModal()" class="btn btn-success w-100 mb-2">
+          <button onclick="openAlbumModal()" class="btn btn-success w-100 mb-2">
             <span class="material-symbols-outlined fs-6 align-middle">add_to_photos</span> Add to Album
           </button>
           {% endif %}
@@ -584,47 +814,62 @@
   </div>
 </div>
 
-<div id="addToAlbumModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Save to Album</h3>
-      <span class="close-modal" onclick="closeModal()">&times;</span>
+<div id="albumModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="albumModalTitle">
+  <div id="albumModal">
+
+    <div class="album-modal-header">
+      <h3 id="albumModalTitle">
+        <span class="material-symbols-outlined">add_to_photos</span>
+        Save to Album
+      </h3>
+      <button class="album-modal-close" onclick="closeAlbumModal()" aria-label="Close">&times;</button>
     </div>
 
-    <div class="modal-body">
-      <div class="playlist-section" id="existingPlaylists">
-      {% for album in albums %}
-      <div class="playlist-item" data-album-id="{{ album.id }}" onclick="togglePlaylist(this)">
-        <input type="checkbox" class="playlist-checkbox"
-          {% if album.id in albums_with_event %}checked{% endif %}
-          onclick="event.stopPropagation()">
-        <div class="playlist-info">
-          <div class="playlist-name">{{ album.name }}</div>
-          <div class="playlist-count">{{ album.events|length }} event{% if album.events|length != 1 %}s{% endif %}</div>
+    <div class="album-modal-body">
+      <div id="inlineNewAlbumForm">
+        <label for="newAlbumName">Album name *</label>
+        <input type="text" id="newAlbumName" placeholder="e.g. Summer Festivals" autocomplete="off">
+        <label for="newAlbumDesc">Description</label>
+        <textarea id="newAlbumDesc" placeholder="Optional..." rows="2"></textarea>
+        <div class="inline-form-actions">
+          <button class="btn-inline-cancel" onclick="hideNewAlbumForm()">Cancel</button>
+          <button class="btn-inline-create" onclick="createNewAlbum()">Create &amp; Add</button>
         </div>
       </div>
-      {% else %}
-      <p style="padding: 20px; text-align: center; color: #606060;">No albums yet. Create one below!</p>
-      {% endfor %}
-    </div>
 
-      <div class="new-playlist-btn" onclick="showNewAlbumForm()">
-        <span class="new-playlist-icon">➕</span>
-        <span>New album</span>
+      <div class="new-album-trigger" id="newAlbumTrigger" onclick="showNewAlbumForm()">
+        <span class="material-symbols-outlined">create_new_folder</span>
+        New album
       </div>
 
-      <div class="new-playlist-form" id="newAlbumForm">
-        <input type="text" id="newAlbumName" placeholder="Album name" autocomplete="off">
-        <textarea id="newAlbumDesc" placeholder="Description (optional)" rows="2"></textarea>
-        <div class="form-buttons">
-          <button class="btn-cancel" onclick="hideNewAlbumForm()">Cancel</button>
-          <button class="btn-create" onclick="createNewAlbum()">Create</button>
+      <div class="album-list" id="albumList">
+        {% for album in user_albums %}
+        {% set in_album = event.id in album.events | map(attribute='id') | list %}
+        <div class="album-row {% if in_album %}selected{% endif %}" data-album-id="{{ album.id }}"
+          data-event-id="{{ event.id }}" data-in-album="{{ 'true' if in_album else 'false' }}"
+          onclick="handleAlbumRowClick(this)">
+          <div class="album-row-icon">
+            <span class="material-symbols-outlined">photo_album</span>
+          </div>
+          <div class="album-row-info">
+            <div class="album-row-name">{{ album.name }}</div>
+            <div class="album-row-count" data-album-id="{{ album.id }}">
+              {{ album.events|length }} event{% if album.events|length != 1 %}s{% endif %}
+            </div>
+          </div>
+          <div class="album-row-check"></div>
         </div>
+        {% else %}
+        <div class="album-empty-state">
+          <span class="material-symbols-outlined">photo_album</span>
+          No albums yet — create one above!
+        </div>
+        {% endfor %}
       </div>
     </div>
 
-    <div class="modal-footer">
-      <button class="btn-done" onclick="closeModal()">Done</button>
+    <div class="album-modal-footer">
+      <button class="btn-modal-done" onclick="closeAlbumModal()">Done</button>
     </div>
   </div>
 </div>
@@ -677,7 +922,6 @@
     const id = btn.dataset.eventId;
     const res = await fetch(`/api/bookmarks/toggle/${id}`, { method: 'POST' });
     const data = await res.json();
-
     btn.textContent = data.bookmarked ? '🔖 Saved' : '🔖 Save Event';
     btn.className = data.bookmarked ? 'btn btn-success w-100 mb-3' : 'btn btn-outline-primary w-100 mb-3';
   }
@@ -688,7 +932,6 @@
     label.addEventListener('mouseover', () => highlight(idx + 1));
     label.addEventListener('mouseleave', () => highlight(selectedRating));
   });
-
   function highlight(n) {
     document.querySelectorAll('#starPicker .star').forEach((s, i) => {
       s.style.color = i < n ? '#f59e0b' : '';
@@ -701,45 +944,30 @@
     const card = document.getElementById(`review-${reviewId}`);
     const upBtn = card.querySelector('.vote-btn.up');
     const downBtn = card.querySelector('.vote-btn.down');
-
     const newVote = btn.classList.contains('active') ? 'none' : vote;
-
     const form = new FormData();
     form.append('vote', newVote);
     const res = await fetch(`/reviews/${reviewId}/vote`, { method: 'POST', body: form });
-
-    if (!res.ok)
-      return;
-
+    if (!res.ok) return;
     const data = await res.json();
-
     card.querySelector('.up-count').textContent = data.upvotes;
     card.querySelector('.down-count').textContent = data.downvotes;
-
     upBtn.classList.remove('active');
     downBtn.classList.remove('active');
-    if (newVote === 'up')
-      upBtn.classList.add('active');
-
-    else if (newVote === 'down')
-      downBtn.classList.add('active');
+    if (newVote === 'up') upBtn.classList.add('active');
+    else if (newVote === 'down') downBtn.classList.add('active');
   }
 
   async function heartPhoto(btn, photoId) {
     const res = await fetch(`/photos/${photoId}/heart`, { method: 'POST' });
-    if (!res.ok)
-      return;
-
+    if (!res.ok) return;
     const data = await res.json();
     btn.querySelector('.heart-count').textContent = data.hearts;
     const icon = btn.querySelector('.material-symbols-outlined');
-
     if (data.hearted) {
       btn.classList.add('hearted');
       icon.style.fontVariationSettings = "'FILL' 1";
-    }
-
-    else {
+    } else {
       btn.classList.remove('hearted');
       icon.style.fontVariationSettings = "'FILL' 0";
     }
@@ -751,220 +979,147 @@
     document.getElementById('lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-
   function closeLightbox() {
     document.getElementById('lightbox').classList.remove('open');
     document.body.style.overflow = '';
   }
 
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  let _reportItemId = null;
+  let _reportItemType = null;
 
-  let currentItemId = null;
-  let currentItemType = null;
-
-  document.querySelectorAll('.report-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      currentItemId = this.dataset.itemId;
-      currentItemType = this.dataset.itemType;
-      const modalTitle = document.querySelector('#reportModal .modal-title');
-      modalTitle.textContent = `Report ${currentItemType}`;
-    });
+  document.getElementById('reportModal').addEventListener('show.bs.modal', function (e) {
+    const trigger = e.relatedTarget;
+    _reportItemId = trigger.dataset.itemId;
+    _reportItemType = trigger.dataset.itemType;
+    this.querySelector('.modal-title').textContent = `Report ${_reportItemType}`;
   });
 
   document.getElementById('reportForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-
     const formData = new FormData(this);
-    const data = {
-      reason: formData.get('reason'),
-      details: formData.get('details')
-    };
-
-    const response = await fetch(`/reports/${currentItemType}/${currentItemId}`, {
+    const res = await fetch(`/reports/${_reportItemType}/${_reportItemId}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: formData.get('reason'), details: formData.get('details') })
     });
-
-    if (response.ok) {
-      const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
-      modal.hide();
-
-      const alertDiv = document.createElement('div');
-      alertDiv.className = 'alert alert-success alert-dismissible fade show';
-      alertDiv.role = 'alert';
-      alertDiv.innerHTML = `
-        ${currentItemType.charAt(0).toUpperCase() + currentItemType.slice(1)} reported successfully! Our team will review it.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertDiv.outerHTML);
-
+    if (res.ok) {
+      bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+      showToast(`${_reportItemType.charAt(0).toUpperCase() + _reportItemType.slice(1)} reported successfully!`);
       this.reset();
-
-      setTimeout(() => {
-        const alert = document.querySelector('.alert');
-        if (alert) alert.remove();
-      }, 5000);
-    }
-    
-    else {
-      const error = await response.json();
-      alert(error.detail || 'Error submitting report');
+    } else {
+      const err = await res.json();
+      showToast(err.detail || 'Error submitting report', true);
     }
   });
 
-  const currentEventId = {{ event.id }};
-
-  function openAddToAlbumModal() {
-    document.getElementById('addToAlbumModal').style.display = 'block';
+  function openAlbumModal() {
+    document.getElementById('albumModalBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
     hideNewAlbumForm();
   }
 
-  function closeModal() {
-    document.getElementById('addToAlbumModal').style.display = 'none';
+  function closeAlbumModal() {
+    document.getElementById('albumModalBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
   }
 
-  window.onclick = function (event) {
-    const modal = document.getElementById('addToAlbumModal');
-    if (event.target === modal) {
-      closeModal();
-    }
-  }
-
-  function togglePlaylist(element) {
-  const checkbox = element.querySelector('.playlist-checkbox');
-  const albumId = element.dataset.albumId;
-  checkbox.checked = !checkbox.checked;
-  toggleAlbum(parseInt(albumId), currentEventId, checkbox.checked);
-}
-
-document.querySelectorAll('.playlist-checkbox').forEach(checkbox => {
-  checkbox.addEventListener('change', function () {
-    const albumId = this.closest('.playlist-item').dataset.albumId;
-    toggleAlbum(parseInt(albumId), currentEventId, this.checked);
+  document.getElementById('albumModalBackdrop').addEventListener('click', function (e) {
+    if (e.target === this) closeAlbumModal();
   });
-});
 
-  async function toggleAlbum(albumId, eventId, isChecked) {
-  const url = isChecked ? `/albums/${albumId}/add-event/${eventId}` : `/albums/${albumId}/remove-event/${eventId}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      showToast(isChecked ? 'Added to album' : 'Removed from album');
-      updateEventCount(albumId, isChecked ? 1 : -1);
-    } else if (response.status === 400) {
-      showToast(data.detail);
-    } else {
-      showToast(data.detail || 'Operation failed', true);
-      const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
-      if (checkbox) checkbox.checked = !isChecked;
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    showToast('Failed to update', true);
-    const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
-    if (checkbox) checkbox.checked = !isChecked;
-  }
-}
-
-  async function createNewAlbum() {
-    const name = document.getElementById('newAlbumName').value.trim();
-    if (!name) {
-      showToast('Please enter an album name', true);
-      return;
-    }
-
-    const description = document.getElementById('newAlbumDesc').value.trim();
+  async function handleAlbumRowClick(row) {
+    const albumId = parseInt(row.dataset.albumId);
+    const evtId = parseInt(row.dataset.eventId);
+    const inAlbum = row.dataset.inAlbum === 'true';
+    const url = inAlbum
+      ? `/albums/${albumId}/remove-event/${evtId}`
+      : `/albums/${albumId}/add-event/${evtId}`;
 
     try {
-      const formData = new URLSearchParams();
-      formData.append('name', name);
-      formData.append('description', description);
-
-      const response = await fetch('/albums/create', {
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: formData.toString()
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        showToast(`Created "${data.name}"`);
-        setTimeout(() => window.location.reload(), 500);
+      if (res.ok) {
+        const nowInAlbum = !inAlbum;
+        row.dataset.inAlbum = nowInAlbum ? 'true' : 'false';
+        row.classList.toggle('selected', nowInAlbum);
+        const countEl = row.querySelector('.album-row-count');
+        const cur = parseInt(countEl.textContent) || 0;
+        const next = nowInAlbum ? cur + 1 : Math.max(0, cur - 1);
+        countEl.textContent = `${next} event${next !== 1 ? 's' : ''}`;
+        showToast(nowInAlbum ? 'Added to album' : 'Removed from album');
+      } else {
+        const err = await res.json();
+        showToast(err.detail || 'Operation failed', true);
       }
-      
-      else {
-        const error = await response.json();
-        showToast(error.detail || 'Failed to create album', true);
-      }
-    }
-    
-    catch (error) {
-      console.error('Error:', error);
-      showToast('Failed to create album', true);
-    }
-  }
-
-  function updateEventCount(albumId, delta) {
-    const playlistItem = document.querySelector(`.playlist-item[data-album-id="${albumId}"]`);
-    if (!playlistItem)
-      return;
-
-    const countElement = playlistItem.querySelector('.playlist-count');
-    const match = countElement.textContent.match(/(\d+)/);
-    if (match) {
-      const newCount = parseInt(match[1]) + delta;
-      countElement.textContent = `${newCount} event${newCount !== 1 ? 's' : ''}`;
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update album', true);
     }
   }
 
   function showNewAlbumForm() {
-    document.getElementById('newAlbumForm').style.display = 'block';
+    document.getElementById('inlineNewAlbumForm').style.display = 'block';
+    document.getElementById('newAlbumTrigger').style.display = 'none';
     document.getElementById('newAlbumName').focus();
   }
 
   function hideNewAlbumForm() {
-    document.getElementById('newAlbumForm').style.display = 'none';
+    document.getElementById('inlineNewAlbumForm').style.display = 'none';
+    document.getElementById('newAlbumTrigger').style.display = 'flex';
     document.getElementById('newAlbumName').value = '';
     document.getElementById('newAlbumDesc').value = '';
   }
 
-  let toastTimeout;
-  function showToast(message, isError = false) {
-    const existingToast = document.querySelector('.success-toast');
-    if (existingToast)
-      existingToast.remove();
-    if (toastTimeout)
-      clearTimeout(toastTimeout);
+  async function createNewAlbum() {
+    const name = document.getElementById('newAlbumName').value.trim();
+    if (!name) { showToast('Please enter an album name', true); return; }
+    const description = document.getElementById('newAlbumDesc').value.trim();
+    const evtId = parseInt(document.getElementById('albumModalBackdrop').dataset.eventId);
 
-    const toast = document.createElement('div');
-    toast.className = 'success-toast';
-    toast.style.background = isError ? '#e74c3c' : '#2e2e2e';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    toastTimeout = setTimeout(() => toast.remove(), 3000);
+    try {
+      const body = new URLSearchParams({ name, description });
+      const res = await fetch('/albums/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        body: body.toString()
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(`Album "${data.name}" created!`);
+        await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        setTimeout(() => window.location.reload(), 500);
+      } else {
+        const err = await res.json();
+        showToast(err.detail || 'Failed to create album', true);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to create album', true);
+    }
   }
 
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-      closeModal();
-    }
+  let _toastTimeout;
+  function showToast(message, isError = false) {
+    document.querySelector('.success-toast')?.remove();
+    clearTimeout(_toastTimeout);
+    const toast = document.createElement('div');
+    toast.className = 'success-toast';
+    toast.style.background = isError ? '#dc2626' : '#0f172a';
+    toast.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">${isError ? 'error' : 'check_circle'}</span> ${message}`;
+    document.body.appendChild(toast);
+    _toastTimeout = setTimeout(() => toast.remove(), 3000);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeLightbox(); closeAlbumModal(); }
   });
+</script>
+<script>
+  document.getElementById('albumModalBackdrop').dataset.eventId = '{{ event.id }}';
 </script>
 {% endblock %}
