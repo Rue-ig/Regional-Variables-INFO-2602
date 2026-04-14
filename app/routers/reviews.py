@@ -1,11 +1,10 @@
 # PATH: app/routers/reviews.py
-from fastapi import Request, Form
+from fastapi import Request, Form, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from app.dependencies import SessionDep, AuthDep
-from app.repositories.content import ReviewRepository
+from app.repositories.content import ReviewRepository, ReviewVoteRepository
 from app.services.content_service import ReviewService
 from app.utilities.flash import flash
-from app.models.review import Review
 from . import router
 
 @router.post("/events/{event_id}/reviews")
@@ -21,8 +20,11 @@ async def submit_review(
         ReviewService(ReviewRepository(db)).submit(event_id, user.id, rating, body)
         flash(request, "Review submitted!", "success")
         
-    except Exception as e:
-        flash(request, str(e), "error")
+    except HTTPException as e:
+        flash(request, e.detail, "error")
+        
+    except Exception:
+        flash(request, "An error occurred while submitting your review.", "error")
 
     return RedirectResponse(url=f"/events/{event_id}", status_code=303)
 
@@ -33,25 +35,21 @@ async def delete_review(
     db: SessionDep,
     user: AuthDep,
 ):
-    repo = ReviewRepository(db)
-    review = repo.get_by_id(review_id)
+    service = ReviewService(ReviewRepository(db))
+    review = service.repo.get_by_id(review_id)
 
     if not review:
         flash(request, "Review not found.", "error")
-        
         return RedirectResponse(url="/admin/content", status_code=303)
 
     if user.role == "admin" or review.user_id == user.id:
-        repo.delete(review)
+        service.delete(review_id)
         flash(request, "Review removed.", "success")
         
     else:
         flash(request, "Access denied.", "error")
 
     return RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
-
-from app.models.review_vote import ReviewVote
-from sqlmodel import select
 
 @router.post("/reviews/{review_id}/vote")
 async def vote_review(
@@ -63,51 +61,10 @@ async def vote_review(
     if vote not in ("up", "down"):
         return JSONResponse({"error": "Invalid vote"}, status_code=400)
 
-    review = db.get(Review, review_id)
-    if not review:
-        return JSONResponse({"error": "Not found"}, status_code=404)
-
-    existing_vote = db.exec(
-        select(ReviewVote)
-        .where(ReviewVote.user_id == user.id)
-        .where(ReviewVote.review_id == review_id)
-    ).first()
-
-    if existing_vote:
-        if existing_vote.vote == vote:
-            if vote == "up":
-                review.upvotes = max(0, review.upvotes - 1)
-                
-            else:
-                review.downvotes = max(0, review.downvotes - 1)
-                
-            db.delete(existing_vote)
-            
-        else:
-            if vote == "up":
-                review.upvotes = review.upvotes + 1
-                review.downvotes = max(0, review.downvotes - 1)
-                
-            else:
-                review.downvotes = review.downvotes + 1
-                review.upvotes = max(0, review.upvotes - 1)
-            existing_vote.vote = vote
-            db.add(existing_vote)
-    else:
-        new_vote = ReviewVote(user_id=user.id, review_id=review_id, vote=vote)
-        db.add(new_vote)
-        if vote == "up":
-            review.upvotes += 1
-            
-        else:
-            review.downvotes += 1
-
-    db.add(review)
-    db.commit()
-    db.refresh(review)
-
-    return JSONResponse({
-        "upvotes": review.upvotes,
-        "downvotes": review.downvotes,
-        "user_vote": None if existing_vote and existing_vote.vote == vote else vote,
-    })
+    service = ReviewService(ReviewRepository(db), ReviewVoteRepository(db))
+    try:
+        result = service.toggle_vote(review_id, user.id, vote)
+        return JSONResponse(result)
+        
+    except HTTPException as e:
+        return JSONResponse({"error": e.detail}, status_code=e.status_code)
