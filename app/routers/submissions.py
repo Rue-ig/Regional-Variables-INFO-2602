@@ -7,17 +7,15 @@ from sqlmodel import select
 from . import router, templates
 
 def _island_values():
-    """Return display strings for all islands."""
-    return [i.value for i in IslandEnum]
+    return [i.value for i in Island]
 
 def _category_values():
-    """Return display strings for all categories."""
-    return [c.value for c in CategoryEnum]
+    return [c.value for c in EventCategory]
 
 @router.get("/submissions", response_class=HTMLResponse)
 async def submissions_page(request: Request, db: SessionDep, user: AuthDep):
     events = db.exec(
-        select(Event).where(Event.submitted_by == user.id).order_by(Event.created_at.desc())
+        select(Event).where(Event.created_by == user.id).order_by(Event.created_at.desc())
     ).all()
 
     return templates.TemplateResponse(
@@ -60,7 +58,7 @@ async def create_submission(
         price=price,
         image_url=image_url or None,
         source_url=source_url or None,
-        submitted_by=user.id,
+        created_by=user.id,
         status="pending",
     )
     db.add(event)
@@ -76,7 +74,7 @@ async def delete_submission(
     user: AuthDep,
 ):
     event = db.get(Event, event_id)
-    if not event or event.submitted_by != user.id:
+    if not event or event.created_by != user.id:
         return JSONResponse({"detail": "Not found"}, status_code=404)
 
     if event.status == "published":
