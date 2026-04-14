@@ -33,6 +33,7 @@ from . import (
     events,
     event_detail,
     reviews,
+    pages,
     photos,
     bookmarks,
     albums,
