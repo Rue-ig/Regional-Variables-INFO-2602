@@ -4,14 +4,13 @@ RUN apt-get update \
     && apt-get install -y curl \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
+
 COPY ./pyproject.toml ./
 COPY ./README.md ./
-COPY ./app /app
+COPY ./app ./app
 
 RUN pip install .
 
-WORKDIR /app
-
 ENTRYPOINT ["python"]
-
 CMD ["-m", "app.main"]
