@@ -41,6 +41,20 @@ class ReviewRepository:
         reviews = self.get_for_event(event_id, approved_only=True)
         if not reviews:
             return None
+
+    def get_pending(self) -> list[Review]:
+        return self.session.exec(
+            select(Review).where(Review.approved == False).order_by(Review.created_at.desc())
+        ).all()
+
+    def approve(self, review: Review) -> Review:
+        """Mark a review as approved."""
+        review.approved = True
+        self.session.add(review)
+        self.session.commit()
+        self.session.refresh(review)
+        
+        return review
             
         return round(sum(r.rating for r in reviews) / len(reviews), 1)
 
