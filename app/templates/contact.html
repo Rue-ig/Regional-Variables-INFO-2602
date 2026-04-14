@@ -1,6 +1,7 @@
-{# PATH: app/templates/pages/contact.html #}
+{# PATH: app/templates/contact.html #}
 {% extends "authenticated-base.html" if user else "base.html" %}
-{% block title %}Contact{% endblock %}
+
+{% block title %}Contact – dwivé{% endblock %}
 
 {% block additional_styles %}
 <style>
@@ -108,10 +109,13 @@
     padding: 10px 28px;
     cursor: pointer;
     transition: background .2s;
+    text-decoration: none;
+    display: inline-block;
   }
 
   .btn-coral:hover {
     background: #e85c28;
+    color: #fff;
   }
 
   .contact-info-row {
@@ -175,8 +179,8 @@
 </style>
 {% endblock %}
 
-{% macro body() %}
-<div class="static-page">
+{% block subpage_content %}
+<div class="static-page {% if not user %}mt-5 pt-4{% endif %}">
   <div class="static-hero">
     <div class="hero-icon"><span class="material-symbols-outlined">mail</span></div>
     <h1>Get in Touch</h1>
@@ -185,7 +189,7 @@
 
   <div class="row g-4">
     <div class="col-lg-7">
-      <div class="static-card">
+      <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">edit_note</span>Send us a message</h2>
 
         {% if submitted %}
@@ -193,8 +197,8 @@
           <span class="material-symbols-outlined">check_circle</span>
           Message received! We'll get back to you within 1–2 business days.
         </div>
-        {% endif %}
-
+        <a href="/" class="btn-coral">Return Home</a>
+        {% else %}
         <form method="post" action="/contact" class="d-flex flex-column gap-3">
           <div>
             <label class="form-label" for="c-name">Your name *</label>
@@ -223,11 +227,12 @@
             <button type="submit" class="btn-coral">Send message</button>
           </div>
         </form>
+        {% endif %}
       </div>
     </div>
 
     <div class="col-lg-5">
-      <div class="static-card">
+      <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">contact_phone</span>Contact info</h2>
         <div class="contact-info-row">
           <div class="ci-item">
@@ -253,11 +258,10 @@
           </div>
         </div>
       </div>
-      <div class="static-card">
+      <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">live_help</span>Quick links</h2>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;">
-          {% for label, url in [("Frequently Asked Questions", "/faq"), ("Submit an event", "/submit-event"), ("Privacy
-          Policy", "/privacy"), ("Terms & Conditions", "/terms")] %}
+          {% for label, url in [("Frequently Asked Questions", "/faq"), ("Submit an event", "/events"), ("Privacy Policy", "/privacy"), ("Terms & Conditions", "/terms")] %}
           <li>
             <a href="{{ url }}"
               style="display:flex;align-items:center;gap:8px;font-size:13px;color:#0e6e96;text-decoration:none;padding:7px 0;border-bottom:1px solid #f3f4f6;">
@@ -270,7 +274,10 @@
     </div>
   </div>
 </div>
-{% endmacro %}
+{% endblock %}
 
-{% block subpage_content %}{{ body() }}{% endblock %}
-{% block content %}{{ body() }}{% endblock %}
+{% block content %}
+    {% if not user %}
+        {{ self.subpage_content() }}
+    {% endif %}
+{% endblock %}
