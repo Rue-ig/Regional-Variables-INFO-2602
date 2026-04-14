@@ -857,6 +857,12 @@
               {{ album.events|length }} event{% if album.events|length != 1 %}s{% endif %}
             </div>
           </div>
+          <form action="/albums/{{ album.id }}/delete" method="POST" onsubmit="return confirm('Delete this album?');"
+            onclick="event.stopPropagation();" class="ms-auto me-2">
+            <button type="submit" class="btn btn-link text-danger p-0 border-0">
+              <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+            </button>
+          </form>
           <div class="album-row-check"></div>
         </div>
         {% else %}
@@ -932,6 +938,7 @@
     label.addEventListener('mouseover', () => highlight(idx + 1));
     label.addEventListener('mouseleave', () => highlight(selectedRating));
   });
+
   function highlight(n) {
     document.querySelectorAll('#starPicker .star').forEach((s, i) => {
       s.style.color = i < n ? '#f59e0b' : '';
@@ -942,6 +949,8 @@
     const reviewId = btn.dataset.reviewId;
     const vote = btn.dataset.vote;
     const card = document.getElementById(`review-${reviewId}`);
+    const upBtn = card.querySelector('.vote-btn.up');
+    const downBtn = card.querySelector('.vote-btn.down');
 
     const newVote = btn.classList.contains('active') ? 'none' : vote;
 
@@ -956,42 +965,31 @@
 
       if (res.ok) {
         const data = await res.json();
-
         card.querySelector('.up-count').textContent = data.upvotes;
         card.querySelector('.down-count').textContent = data.downvotes;
-
-        const upBtn = card.querySelector('.vote-btn.up');
-        const downBtn = card.querySelector('.vote-btn.down');
 
         upBtn.classList.remove('active');
         downBtn.classList.remove('active');
 
-        if (newVote === 'up')
-          upBtn.classList.add('active');
-
-        else if (newVote === 'down')
-          downBtn.classList.add('active');
+        if (newVote === 'up') upBtn.classList.add('active');
+        else if (newVote === 'down') downBtn.classList.add('active');
       }
-    }
-
-    catch (err) {
+    } catch (err) {
       console.error("Vote failed:", err);
+      showToast('Could not save vote', true);
     }
   }
 
   async function heartPhoto(btn, photoId) {
     const res = await fetch(`/photos/${photoId}/heart`, { method: 'POST' });
-    if (!res.ok)
-      return;
+    if (!res.ok) return;
     const data = await res.json();
     btn.querySelector('.heart-count').textContent = data.hearts;
     const icon = btn.querySelector('.material-symbols-outlined');
     if (data.hearted) {
       btn.classList.add('hearted');
       icon.style.fontVariationSettings = "'FILL' 1";
-    }
-
-    else {
+    } else {
       btn.classList.remove('hearted');
       icon.style.fontVariationSettings = "'FILL' 0";
     }
@@ -1022,11 +1020,7 @@
   document.getElementById('reportForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const formData = new FormData(this);
-
-    const payload = {
-      reason: formData.get('reason'),
-      details: formData.get('details')
-    };
+    const payload = Object.fromEntries(formData.entries());
 
     try {
       const res = await fetch(`/reports/${_reportItemType}/${_reportItemId}`, {
@@ -1036,23 +1030,15 @@
       });
 
       if (res.ok) {
-        const modalEl = document.getElementById('reportModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-
-        if (modalInstance)
-          modalInstance.hide();
-
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+        if (modalInstance) modalInstance.hide();
         showToast(`${_reportItemType.charAt(0).toUpperCase() + _reportItemType.slice(1)} reported successfully!`);
         this.reset();
-      }
-
-      else {
+      } else {
         const err = await res.json();
         showToast(err.detail || 'Error submitting report', true);
       }
-    }
-
-    catch (err) {
+    } catch (err) {
       showToast('Server error. Please try again later.', true);
     }
   });
@@ -1069,54 +1055,12 @@
   }
 
   document.getElementById('albumModalBackdrop').addEventListener('click', function (e) {
-    if (e.target === this)
-      closeAlbumModal();
+    if (e.target === this) closeAlbumModal();
   });
 
-  async function toggleAlbum(albumId, eventId, isChecked) {
-  const url = isChecked ? `/albums/${albumId}/add-event/${eventId}` : `/albums/${albumId}/remove-event/${eventId}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      showToast(isChecked ? 'Added to album' : 'Removed from album');
-      updateEventCount(albumId, isChecked ? 1 : -1);
-    } else if (response.status === 400) {
-      showToast(data.detail);
-    } else {
-      showToast(data.detail || 'Operation failed', true);
-      const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
-      if (checkbox) checkbox.checked = !isChecked;
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    showToast('Failed to update', true);
-    const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
-    if (checkbox) checkbox.checked = !isChecked;
-  }
-}
-
-
-  function updateEventCount(albumId, delta) {
-    const countEl = document.querySelector(`.album-row-count[data-album-id="${albumId}"]`);
-    if (!countEl) return;
-    const cur = parseInt(countEl.textContent) || 0;
-    const next = Math.max(0, cur + delta);
-    countEl.textContent = `${next} event${next !== 1 ? 's' : ''}`;
-  }
-
   async function handleAlbumRowClick(row) {
-    const albumId = parseInt(row.dataset.albumId);
-    const evtId = parseInt(row.dataset.eventId);
+    const albumId = row.dataset.albumId;
+    const evtId = row.dataset.eventId;
     const inAlbum = row.dataset.inAlbum === 'true';
     const url = inAlbum
       ? `/albums/${albumId}/remove-event/${evtId}`
@@ -1125,25 +1069,25 @@
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
       if (res.ok) {
         const nowInAlbum = !inAlbum;
         row.dataset.inAlbum = nowInAlbum ? 'true' : 'false';
         row.classList.toggle('selected', nowInAlbum);
-        updateEventCount(albumId, nowInAlbum ? 1 : -1);
+
+        const countEl = row.querySelector('.album-row-count');
+        const match = countEl.textContent.match(/\d+/);
+        const cur = match ? parseInt(match[0]) : 0;
+        const next = nowInAlbum ? cur + 1 : Math.max(0, cur - 1);
+        countEl.textContent = `${next} event${next !== 1 ? 's' : ''}`;
+
         showToast(nowInAlbum ? 'Added to album' : 'Removed from album');
-      } else if (res.status === 400) {
-        const err = await res.json();
-        showToast(err.detail);
       } else {
         const err = await res.json();
         showToast(err.detail || 'Operation failed', true);
       }
-    }
-
-    catch (err) {
-      console.error(err);
+    } catch (err) {
       showToast('Failed to update album', true);
     }
   }
@@ -1157,8 +1101,6 @@
   function hideNewAlbumForm() {
     document.getElementById('inlineNewAlbumForm').style.display = 'none';
     document.getElementById('newAlbumTrigger').style.display = 'flex';
-    document.getElementById('newAlbumName').value = '';
-    document.getElementById('newAlbumDesc').value = '';
   }
 
   async function createNewAlbum() {
@@ -1169,52 +1111,35 @@
     }
 
     const description = document.getElementById('newAlbumDesc').value.trim();
-    const evtId = {{ event.id }};
+    const evtId = {{ event.id }
+  };
 
-    try {
-      const body = new URLSearchParams({ name, description });
-      const res = await fetch('/albums/create', {
+  try {
+    const body = new URLSearchParams({ name, description });
+    const res = await fetch('/albums/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: body.toString()
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      showToast(`Album "${data.name}" created!`);
+      await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
-        body: body.toString()
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
-      if (res.ok) {
-        const data = await res.json();
-        await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }
-        });
-
-        const list = document.getElementById('albumList');
-        list.querySelector('.album-empty-state')?.remove();
-
-        const row = document.createElement('div');
-        row.className = 'album-row selected';
-        row.dataset.albumId = data.album_id;
-        row.dataset.eventId = evtId;
-        row.dataset.inAlbum = 'true';
-        row.setAttribute('onclick', 'handleAlbumRowClick(this)');
-        row.innerHTML = `
-          <div class="album-row-icon">
-            <span class="material-symbols-outlined">photo_album</span>
-          </div>
-          <div class="album-row-info">
-            <div class="album-row-name">${data.name}</div>
-            <div class="album-row-count" data-album-id="${data.album_id}">1 event</div>
-          </div>
-          <div class="album-row-check"></div>
-        `;
-        list.appendChild(row);
-        hideNewAlbumForm();
-        showToast(`Album "${data.name}" created!`);
-      } else {
-        const err = await res.json();
-        showToast(err.detail || 'Failed to create album', true);
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to create album', true);
+      setTimeout(() => window.location.reload(), 500);
+    } else {
+      const err = await res.json();
+      showToast(err.detail || 'Failed to create album', true);
     }
+  } catch (err) {
+    showToast('Failed to create album', true);
+  }
   }
 
   let _toastTimeout;
