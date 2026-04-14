@@ -517,12 +517,29 @@
             <span class="material-symbols-outlined">bookmark</span>Saved Events
         </a>
         {% endif %}
+
+        <div class="section-label">General</div>
+        <a class="nav-link {{ 'active' if request.url.path == '/about' }}" href="/about">
+            <span class="material-symbols-outlined">info</span>About Dwivé
+        </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/privacy' }}" href="/privacy">
+            <span class="material-symbols-outlined">shield</span>Privacy Policy
+        </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/terms' }}" href="/terms">
+            <span class="material-symbols-outlined">gavel</span>Terms & Conditions
+        </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/cookies' }}" href="/cookies">
+            <span class="material-symbols-outlined">cookie</span>Cookie Policy
+        </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/disclaimer' }}" href="/disclaimer">
+            <span class="material-symbols-outlined">priority_high</span>Disclaimer
+        </a>
     
         <a class="nav-link nav-logout" href="/logout">
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
     </div>
-
+    
     <div class="sidebar-footer">
         <a href="/app" class="sidebar-user">
             <div class="user-avatar">{{ initials }}</div>
