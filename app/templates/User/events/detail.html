@@ -593,20 +593,20 @@
 
     <div class="modal-body">
       <div class="playlist-section" id="existingPlaylists">
-      {% for album in albums %}
-      <div class="playlist-item" data-album-id="{{ album.id }}" onclick="togglePlaylist(this)">
-        <input type="checkbox" class="playlist-checkbox"
-          {% if album.id in albums_with_event %}checked{% endif %}
-          onclick="event.stopPropagation()">
-        <div class="playlist-info">
-          <div class="playlist-name">{{ album.name }}</div>
-          <div class="playlist-count">{{ album.events|length }} event{% if album.events|length != 1 %}s{% endif %}</div>
+        {% for album in user_albums %}
+        <div class="playlist-item" data-album-id="{{ album.id }}" onclick="togglePlaylist(this)">
+          <input type="checkbox" class="playlist-checkbox" {% if event in album.events %}checked{% endif %}
+            onchange="event.stopPropagation(); toggleAlbum({{ album.id }}, {{ event.id }}, this.checked)">
+          <div class="playlist-info">
+            <div class="playlist-name">{{ album.name }}</div>
+            <div class="playlist-count">{{ album.events|length }} event{% if album.events|length != 1 %}s{% endif %}
+            </div>
+          </div>
         </div>
+        {% else %}
+        <p style="padding: 20px; text-align: center; color: #606060;">No albums yet. Create one below!</p>
+        {% endfor %}
       </div>
-      {% else %}
-      <p style="padding: 20px; text-align: center; color: #606060;">No albums yet. Create one below!</p>
-      {% endfor %}
-    </div>
 
       <div class="new-playlist-btn" onclick="showNewAlbumForm()">
         <span class="new-playlist-icon">➕</span>
@@ -762,6 +762,15 @@
   let currentItemId = null;
   let currentItemType = null;
 
+  document.querySelectorAll('.report-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      currentItemId = this.dataset.itemId;
+      currentItemType = this.dataset.itemType;
+      const modalTitle = document.querySelector('#reportModal .modal-title');
+      modalTitle.textContent = `Report ${currentItemType}`;
+    });
+  });
+
   document.getElementById('reportForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
@@ -825,18 +834,11 @@
   }
 
   function togglePlaylist(element) {
-  const checkbox = element.querySelector('.playlist-checkbox');
-  const albumId = element.dataset.albumId;
-  checkbox.checked = !checkbox.checked;
-  toggleAlbum(parseInt(albumId), currentEventId, checkbox.checked);
-}
-
-document.querySelectorAll('.playlist-checkbox').forEach(checkbox => {
-  checkbox.addEventListener('change', function () {
-    const albumId = this.closest('.playlist-item').dataset.albumId;
-    toggleAlbum(parseInt(albumId), currentEventId, this.checked);
-  });
-});
+    const checkbox = element.querySelector('.playlist-checkbox');
+    checkbox.checked = !checkbox.checked;
+    const changeEvent = new Event('change');
+    checkbox.dispatchEvent(changeEvent);
+  }
 
   async function toggleAlbum(albumId, eventId, isChecked) {
     const url = isChecked ? `/albums/${albumId}/add-event/${eventId}` : `/albums/${albumId}/remove-event/${eventId}`;
