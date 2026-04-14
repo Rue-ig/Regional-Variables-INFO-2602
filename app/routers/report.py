@@ -16,13 +16,13 @@ async def report_photo(
     photo_id: int,
     reason: ReportReason,
     user: AuthDep,
-    session: SessionDep,
+    db: SessionDep,
     details: Optional[str] = None
 ):
     if not user:
         raise HTTPException(status_code=401, detail="Must be logged in")
     
-    existing = session.exec(
+    existing = db.exec(
         select(Report).where(
             Report.photo_id == photo_id,
             Report.user_id == user.id
@@ -39,8 +39,8 @@ async def report_photo(
         details=details
     )
     
-    session.add(report)
-    session.commit()
+    db.add(report)
+    db.commit()
     
     return {"message": "Photo reported successfully", "report_id": report.id}
 
@@ -50,20 +50,20 @@ async def report_review(
     review_id: int,
     reason: ReportReason,
     user: AuthDep,
-    session: SessionDep,
+    db: SessionDep,
     details: Optional[str] = None
 ):
     if not user:
         raise HTTPException(status_code=401, detail="Must be logged in")
     
-    review = session.get(Review, review_id)
+    review = db.get(Review, review_id)
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
     
     if review.user_id == user.id:
         raise HTTPException(status_code=400, detail="Cannot report your own review")
     
-    existing = session.exec(
+    existing = db.exec(
         select(Report).where(
             Report.review_id == review_id,
             Report.user_id == user.id
@@ -80,8 +80,8 @@ async def report_review(
         details=details
     )
     
-    session.add(report)
-    session.commit()
+    db.add(report)
+    db.commit()
     
     return {"message": "Review reported successfully", "report_id": report.id}
 
@@ -90,14 +90,14 @@ async def report_review_form(
     request: Request,
     review_id: int,
     user: AuthDep,
-    session: SessionDep,
+    db: SessionDep,
     reason: ReportReason = Form(...),
     details: Optional[str] = Form(None)
 ):
     if not user:
         return RedirectResponse(url="/login?error=Please login to report", status_code=303)
     
-    review = session.get(Review, review_id)
+    review = db.get(Review, review_id)
     if not review:
         return RedirectResponse(
             url=f"/events?error=Review not found", 
@@ -110,7 +110,7 @@ async def report_review_form(
             status_code=303
         )
     
-    existing = session.exec(
+    existing = db.exec(
         select(Report).where(
             Report.review_id == review_id,
             Report.user_id == user.id
@@ -130,8 +130,8 @@ async def report_review_form(
         details=details
     )
     
-    session.add(report)
-    session.commit()
+    db.add(report)
+    db.commit()
     
     return RedirectResponse(
         url=f"/events/{review.event_id}?message=Review+reported+successfully", 
@@ -142,12 +142,12 @@ async def report_review_form(
 async def get_my_reports(
     request: Request,
     user: AuthDep,
-    session: SessionDep
+    db: SessionDep
 ):
     if not user:
         raise HTTPException(status_code=401, detail="Not logged in")
     
-    reports = session.exec(
+    reports = db.exec(
         select(Report).where(Report.user_id == user.id)
     ).all()
     
@@ -157,12 +157,12 @@ async def get_my_reports(
 async def get_pending_reports(
     request: Request,
     user: AuthDep,
-    session: SessionDep
+    db: SessionDep
 ):
     if not user or not getattr(user, "is_admin", False):
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    reports = session.exec(
+    reports = db.exec(
         select(Report).where(Report.status == ReportStatus.PENDING)
     ).all()
     
@@ -174,13 +174,13 @@ async def review_report(
     report_id: int,
     status: ReportStatus,
     user: AuthDep,
-    session: SessionDep,
+    db: SessionDep,
     admin_notes: Optional[str] = None
 ):
     if not user or not getattr(user, "is_admin", False):
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    report = session.get(Report, report_id)
+    report = db.get(Report, report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
@@ -188,6 +188,6 @@ async def review_report(
     report.admin_notes = admin_notes
     report.reviewed_at = datetime.utcnow()
     
-    session.commit()
+    db.commit()
     
     return {"message": f"Report {status.value}", "report_id": report_id}
