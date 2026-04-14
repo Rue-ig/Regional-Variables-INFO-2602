@@ -468,7 +468,7 @@
             <div class="brand-tagline">Discover the Islands</div>
         </div>
     </a>
-
+    
     <div class="sidebar-nav">
         {% if user.role == 'admin' %}
         <div class="section-label">Administration</div>
@@ -487,6 +487,13 @@
         <a class="nav-link {{ 'active' if '/admin/import' in request.url.path }}" href="/admin/import">
             <span class="material-symbols-outlined">upload_file</span>Import Data
         </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/contact' }}" href="/contact">
+            <span class="material-symbols-outlined">mail</span>Contact Inquiries
+        </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
+            <span class="material-symbols-outlined">help</span>Edit FAQ
+        </a>
+    
         {% else %}
         <div class="section-label">Explore</div>
         <a class="nav-link {{ 'active' if request.url.path == '/home' }}" href="/home">
@@ -498,13 +505,19 @@
         <a class="nav-link {{ 'active' if '/events/map' in request.url.path }}" href="/events/map">
             <span class="material-symbols-outlined">map</span>Event Map
         </a>
-
+        <a class="nav-link {{ 'active' if request.url.path == '/contact' }}" href="/contact">
+            <span class="material-symbols-outlined">mail</span>Contact Us
+        </a>
+        <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
+            <span class="material-symbols-outlined">help</span>FAQ
+        </a>
+    
         <div class="section-label">My Space</div>
         <a class="nav-link {{ 'active' if '/bookmarks' in request.url.path }}" href="/bookmarks">
             <span class="material-symbols-outlined">bookmark</span>Saved Events
         </a>
         {% endif %}
-
+    
         <a class="nav-link nav-logout" href="/logout">
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
