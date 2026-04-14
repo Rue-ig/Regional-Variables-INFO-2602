@@ -11,7 +11,9 @@ class Review(ReviewBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     event_id: int = Field(foreign_key="event.id", index=True)
     user_id: int = Field(foreign_key="user.id", index=True)
-    approved: bool = False
+    approved: bool = True
+    upvotes: int = Field(default=0)
+    downvotes: int = Field(default=0)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     event: "Event" = Relationship(back_populates="reviews")
