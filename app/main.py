@@ -23,7 +23,6 @@ app = FastAPI(lifespan=lifespan)
 async def root():
     return RedirectResponse(url="/home")
 
-
 async def log_visit(request: Request, call_next):
     exclusions = ("/static", "/api", "/robots.txt", "/favicon.ico", "/admin")
     
