@@ -1,9 +1,12 @@
 # PATH: app/routers/reviews.py
 from fastapi import Request, Form, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
+from sqlmodel import select
 from app.dependencies import SessionDep, AuthDep
 from app.repositories.content import ReviewRepository, ReviewVoteRepository
 from app.services.content_service import ReviewService
+from app.models.review_vote import ReviewVote
+from app.models.review import Review
 from app.utilities.flash import flash
 from . import router
 
@@ -53,18 +56,42 @@ async def delete_review(
 
 @router.post("/reviews/{review_id}/vote")
 async def vote_review(
+    request: Request,
     review_id: int,
     db: SessionDep,
     user: AuthDep,
-    vote: str = Form(...),
+    vote: str = Form(...)
 ):
-    if vote not in ("up", "down"):
-        return JSONResponse({"error": "Invalid vote"}, status_code=400)
-
-    service = ReviewService(ReviewRepository(db), ReviewVoteRepository(db))
-    try:
-        result = service.toggle_vote(review_id, user.id, vote)
-        return JSONResponse(result)
+    review = db.get(Review, review_id)
+    if not review:
+        return JSONResponse({"detail": "Review not found"}, status_code=404)
         
-    except HTTPException as e:
-        return JSONResponse({"error": e.detail}, status_code=e.status_code)
+    existing = db.exec(
+        select(ReviewVote).where(
+            ReviewVote.review_id == review_id,
+            ReviewVote.user_id == user.id
+        )
+    ).first()
+    
+    if vote == "none":
+        if existing:
+            db.delete(existing)
+            
+    elif vote in ["up", "down"]:
+        if existing:
+            existing.vote = vote
+            
+        else:
+            db.add(ReviewVote(user_id=user.id, review_id=review_id, vote=vote))
+            
+    db.commit()
+    
+    upvotes = len(db.exec(select(ReviewVote).where(ReviewVote.review_id == review_id, ReviewVote.vote == "up")).all())
+    downvotes = len(db.exec(select(ReviewVote).where(ReviewVote.review_id == review_id, ReviewVote.vote == "down")).all())
+    
+    review.upvotes = upvotes
+    review.downvotes = downvotes
+    db.add(review)
+    db.commit()
+    
+    return JSONResponse({"upvotes": upvotes, "downvotes": downvotes})
