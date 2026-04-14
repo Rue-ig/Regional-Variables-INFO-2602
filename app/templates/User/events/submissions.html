@@ -74,7 +74,7 @@
   <div class="mt-4">
     <a href="#" class="btn btn-outline-success rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#newEventModal">
       <span class="material-symbols-outlined fs-6 align-middle">add</span> Submit New Event
-    </a>
+  </a>
   </div>
 </div>
 
@@ -86,7 +86,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-      <form method="POST" action="/submissions" id="newEventForm">
+        <form method="POST" action="/submissions" id="newEventForm">
           <h6 class="mb-3 pb-2 border-bottom fw-bold">Basic Details</h6>
           <div class="row g-3 mb-4">
             <div class="col-12">
@@ -152,14 +152,14 @@
             </div>
           </div>
 
-        </div>
+      </div>
 
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-light rounded-pill"
             onclick="document.getElementById('newEventForm').reset()">Clear</button>
           <button type="submit" class="btn btn-primary rounded-pill px-4">Submit Event</button>
-        </div>
+      </div>
       </form>
 
     </div>

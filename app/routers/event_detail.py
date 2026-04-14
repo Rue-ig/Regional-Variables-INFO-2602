@@ -1,5 +1,5 @@
 # PATH: app/routers/event_detail.py
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.responses import HTMLResponse
 from app.dependencies import SessionDep, UserDep
 from app.repositories.event import EventRepository
@@ -75,4 +75,27 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
             "user_status": user_status,
             "user_review_votes": user_review_votes,
         },
+    )
+
+@router.get("/user/events/{id}", response_class=HTMLResponse)
+async def user_event_detail(
+    request: Request,
+    id: int,
+    db: SessionDep,
+    user: UserDep
+):
+    events = EventService(EventRepository(db)).repo.get_by_user(user.id)
+    event = None
+    for e in events:
+        if e.id == id:
+            event = e
+            break
+    
+    if event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="User/events/user-event-detail.html",
+        context={"event": event, "user": user},
     )
