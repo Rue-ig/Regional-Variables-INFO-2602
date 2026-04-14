@@ -100,6 +100,29 @@ async def create_submission(
             status_code=303
         )
 
+@router.get("/submissions/{event_id}/edit", response_class=HTMLResponse)
+async def edit_submission(
+    request: Request,
+    event_id: int,
+    db: SessionDep,
+    user: AuthDep,
+):
+    event = db.get(Event, event_id)
+    
+    if not event or event.created_by != user.id:
+        return RedirectResponse(url="/submissions?error=not_found", status_code=303)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="User/events/edit_submission.html",
+        context={
+            "event": event,
+            "user": user,
+            "islands": _island_values(),
+            "categories": _category_values(),
+        },
+    )
+
 @router.post("/submissions/{event_id}/delete")
 async def delete_submission(
     request: Request,
