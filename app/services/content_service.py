@@ -12,41 +12,88 @@ UPLOAD_DIR = "app/static/uploads"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 class ReviewService:
-    def __init__(self, repo: ReviewRepository):
+    def __init__(self, repo: ReviewRepository, vote_repo: Optional[ReviewVoteRepository] = None):
         self.repo = repo
-
-    def get_for_event(self, event_id: int) -> list[Review]:
-        return self.repo.get_for_event(event_id)
-
-    def get_average_rating(self, event_id: int) -> Optional[float]:
-        return self.repo.average_rating(event_id)
+        self.vote_repo = vote_repo
 
     def submit(self, event_id: int, user_id: int, rating: int, body: str) -> Review:
         if self.repo.get_by_user_and_event(user_id, event_id):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You have already reviewed this event"
-            )
+            raise HTTPException(status_code=400, detail="You have already reviewed this event")
             
         if not (1 <= rating <= 5):
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Rating must be 1–5")
-        
-        return self.repo.create(event_id=event_id, user_id=user_id, rating=rating, body=body)
+            raise HTTPException(status_code=422, detail="Rating must be 1–5")
+            
+        return self.repo.create(event_id, user_id, rating, body)
 
+    def toggle_vote(self, review_id: int, user_id: int, vote_type: str) -> dict:
+        review = self.repo.get_by_id(review_id)
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+
+        existing = self.vote_repo.get_vote(user_id, review_id)
+        current_state = vote_type
+
+        if existing:
+            if existing.vote == vote_type:
+                if vote_type == "up":
+                    review.upvotes -= 1
+                    
+                else:
+                    review.downvotes -= 1
+                    
+                self.vote_repo.delete(existing)
+                current_state = None
+
+            else:
+                if vote_type == "up":
+                    review.upvotes += 1
+                    review.downvotes -= 1
+                    
+                else:
+                    review.downvotes += 1
+                    review.upvotes -= 1
+                    
+                existing.vote = vote_type
+                self.vote_repo.add(existing)
+        else:
+            new_vote = ReviewVote(user_id=user_id, review_id=review_id, vote=vote_type)
+            if vote_type == "up":
+                review.upvotes += 1
+                
+            else:
+                review.downvotes += 1
+                
+            self.vote_repo.add(new_vote)
+
+        review.upvotes = max(0, review.upvotes)
+        review.downvotes = max(0, review.downvotes)
+        
+        self.repo.session.add(review)
+        self.repo.session.commit()
+        self.repo.session.refresh(review)
+
+        return {
+            "upvotes": review.upvotes,
+            "downvotes": review.downvotes,
+            "user_vote": current_state
+        }
+
+    def get_pending(self) -> list[Review]:
+        return self.repo.get_pending()
+    
     def approve(self, review_id: int) -> Review:
         review = self.repo.get_by_id(review_id)
         if not review:
             raise HTTPException(status_code=404, detail="Review not found")
+            
         return self.repo.approve(review)
 
     def delete(self, review_id: int) -> None:
         review = self.repo.get_by_id(review_id)
         if not review:
             raise HTTPException(status_code=404, detail="Review not found")
+            
         self.repo.delete(review)
-
-    def get_pending(self) -> list[Review]:
-        return self.repo.get_pending()
 
 class PhotoService:
     def __init__(self, repo: PhotoRepository):

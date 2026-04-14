@@ -1,0 +1,63 @@
+{# PATH: app/templates/User/albums/album_detail.html #}
+{% extends "authenticated-base.html" %}
+{% block title %}{{ album.name }} – My Albums{% endblock %}
+{% block subpage_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="/bookmarks" class="text-decoration-none">My Space</a></li>
+        <li class="breadcrumb-item active">{{ album.name }}</li>
+      </ol>
+    </nav>
+    <h1 class="h3 fw-bold mb-0">{{ album.name }}</h1>
+    {% if album.description %}<p class="text-muted mb-0">{{ album.description }}</p>{% endif %}
+  </div>
+  <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-3 py-2 fs-6">
+    {{ events | length }} event{{ 's' if events | length != 1 else '' }}
+  </span>
+</div>
+
+{% if events %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+  {% for event in events %}
+  <div class="col">
+    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+      {% if event.image_url %}
+      <img src="{{ event.image_url }}" class="card-img-top" style="height:180px;object-fit:cover;" alt="{{ event.title }}">
+      {% else %}
+      <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;">
+        <span style="font-size:2.5rem;">🎉</span>
+      </div>
+      {% endif %}
+      <div class="card-body p-3">
+        <div class="mb-2">
+          <span class="badge bg-info text-dark">{{ event.island.value }}</span>
+          <span class="badge bg-secondary">{{ event.category.value }}</span>
+        </div>
+        <h5 class="fw-bold mb-1 text-truncate">{{ event.title }}</h5>
+        <p class="text-muted small mb-1">📍 {{ event.venue }}</p>
+        <p class="text-muted small mb-3">📅 {{ event.date.strftime('%a, %d %b %Y') }}</p>
+        <div class="d-flex gap-2">
+          <a href="/events/{{ event.id }}" class="btn btn-outline-primary btn-sm rounded-pill flex-fill">View</a>
+          <form method="post" action="/albums/{{ album.id }}/remove-event/{{ event.id }}"
+            onsubmit="return confirm('Remove from album?');">
+            <button class="btn btn-outline-danger btn-sm rounded-pill">
+              <span class="material-symbols-outlined fs-6 align-middle">remove_circle</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 bg-white rounded-4 shadow-sm">
+  <span class="material-symbols-outlined display-1 text-muted opacity-25">folder_open</span>
+  <h4 class="mt-3">Album is empty</h4>
+  <p class="text-muted">Add events from the event detail page or your saved events.</p>
+  <a href="/events" class="btn btn-primary rounded-pill px-4">Browse Events</a>
+</div>
+{% endif %}
+{% endblock %}

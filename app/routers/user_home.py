@@ -1,5 +1,5 @@
 # PATH: app/routers/user_home.py
-from fastapi import Request, Form, status
+from fastapi import UploadFile, File, Request, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import select
 from app.dependencies.session import SessionDep
@@ -10,6 +10,7 @@ from app.models.review import Review
 from app.models.bookmark import Bookmark
 from app.models.event import Event 
 from app.utilities.security import encrypt_password
+import os, uuid
 from . import router, templates
 
 @router.get("/home", response_class=HTMLResponse)
@@ -100,3 +101,43 @@ async def change_password(user: AuthDep, db: SessionDep, new_password: str = For
     db.commit()
     
     return RedirectResponse(url="/app?msg=Password+changed", status_code=303)
+
+@router.post("/app/upload-avatar")
+async def upload_avatar(user: AuthDep, db: SessionDep, file: UploadFile = File(...)):
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+        return RedirectResponse(url="/app?msg=Error:+Invalid+file+type", status_code=303)
+        
+    os.makedirs("app/static/uploads/avatars", exist_ok=True)
+    filename = f"{uuid.uuid4().hex}{ext}"
+    path = f"app/static/uploads/avatars/{filename}"
+    content = await file.read()
+    if len(content) > 2 * 1024 * 1024:
+        return RedirectResponse(url="/app?msg=Error:+File+too+large+(max+2MB)", status_code=303)
+        
+    with open(path, "wb") as f:
+        f.write(content)
+        
+    if user.avatar_url and "uploads/avatars" in user.avatar_url:
+        old = "app" + user.avatar_url
+        if os.path.exists(old):
+            os.remove(old)
+            
+    user.avatar_url = f"/static/uploads/avatars/{filename}"
+    db.add(user)
+    db.commit()
+    
+    return RedirectResponse(url="/app?msg=Avatar+updated", status_code=303)
+
+@router.post("/app/remove-avatar")
+async def remove_avatar(user: AuthDep, db: SessionDep):
+    if user.avatar_url and "uploads/avatars" in user.avatar_url:
+        old = "app" + user.avatar_url
+        if os.path.exists(old):
+            os.remove(old)
+            
+    user.avatar_url = None
+    db.add(user)
+    db.commit()
+    
+    return RedirectResponse(url="/app?msg=Avatar+removed", status_code=303)

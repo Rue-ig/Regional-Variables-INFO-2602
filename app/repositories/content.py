@@ -1,6 +1,7 @@
 # PATH: app/repositories/content.py
 from sqlmodel import Session, select
 from app.models.review import Review
+from app.models.review_vote import ReviewVote
 from app.models.photo import Photo
 from app.models.bookmark import Bookmark
 from typing import Optional
@@ -16,12 +17,8 @@ class ReviewRepository:
         query = select(Review).where(Review.event_id == event_id)
         if approved_only:
             query = query.where(Review.approved == True)
+            
         return self.session.exec(query.order_by(Review.created_at.desc())).all()
-
-    def get_pending(self) -> list[Review]:
-        return self.session.exec(
-            select(Review).where(Review.approved == False).order_by(Review.created_at.desc())
-        ).all()
 
     def get_by_user_and_event(self, user_id: int, event_id: int) -> Optional[Review]:
         return self.session.exec(
@@ -33,13 +30,7 @@ class ReviewRepository:
         self.session.add(review)
         self.session.commit()
         self.session.refresh(review)
-        return review
-
-    def approve(self, review: Review) -> Review:
-        review.approved = True
-        self.session.add(review)
-        self.session.commit()
-        self.session.refresh(review)
+        
         return review
 
     def delete(self, review: Review) -> None:
@@ -50,7 +41,38 @@ class ReviewRepository:
         reviews = self.get_for_event(event_id, approved_only=True)
         if not reviews:
             return None
+
+    def get_pending(self) -> list[Review]:
+        return self.session.exec(
+            select(Review).where(Review.approved == False).order_by(Review.created_at.desc())
+        ).all()
+
+    def approve(self, review: Review) -> Review:
+        """Mark a review as approved."""
+        review.approved = True
+        self.session.add(review)
+        self.session.commit()
+        self.session.refresh(review)
+        
+        return review
+            
         return round(sum(r.rating for r in reviews) / len(reviews), 1)
+
+class ReviewVoteRepository:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def get_vote(self, user_id: int, review_id: int) -> Optional[ReviewVote]:
+        return self.session.exec(
+            select(ReviewVote)
+            .where(ReviewVote.user_id == user_id, ReviewVote.review_id == review_id)
+        ).first()
+
+    def add(self, vote: ReviewVote):
+        self.session.add(vote)
+
+    def delete(self, vote: ReviewVote):
+        self.session.delete(vote)
 
 class PhotoRepository:
     def __init__(self, session: Session):

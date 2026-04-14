@@ -1,0 +1,177 @@
+{# PATH: app/templates/pages/privacy.html #}
+{% extends "authenticated-base.html" if user else "base.html" %}
+{% block title %}Privacy Policy{% endblock %}
+
+{% block additional_styles %}
+<style>
+  .static-page {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .static-hero {
+    background: linear-gradient(135deg, #0d1f35 0%, #0a3a5c 60%, #0a4a6e 100%);
+    border-radius: 18px;
+    padding: 48px 40px 40px;
+    margin-bottom: 28px;
+  }
+
+  .static-hero h1 {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+  }
+
+  .static-hero p {
+    color: rgba(255, 255, 255, .65);
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    background: rgba(255, 107, 53, .15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 107, 53, .35);
+  }
+
+  .hero-icon .material-symbols-outlined {
+    font-size: 28px;
+    color: #ff6b35;
+  }
+
+  .static-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eef0f3;
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+
+  .static-card h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0d1f35;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .static-card h2 .material-symbols-outlined {
+    font-size: 20px;
+    color: #ff6b35;
+  }
+
+  .static-card p,
+  .static-card li {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.75;
+  }
+
+  .static-card ul {
+    padding-left: 20px;
+    margin: 8px 0;
+  }
+
+  .static-card li {
+    margin-bottom: 5px;
+  }
+
+  .legal-date {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legal-date .material-symbols-outlined {
+    font-size: 15px;
+  }
+</style>
+{% endblock %}
+
+{% macro body() %}
+<div class="static-page">
+  <div class="static-hero">
+    <div class="hero-icon"><span class="material-symbols-outlined">privacy_tip</span></div>
+    <h1>Privacy Policy</h1>
+    <p>How DWIVE collects, uses, and protects your information.</p>
+  </div>
+
+  <div class="legal-date"><span class="material-symbols-outlined">calendar_today</span>Last updated: April 2026</div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">info</span>Overview</h2>
+    <p>DWIVE ("we", "us", "our") operates the website at dwive.tt. This policy explains what personal data we collect,
+      why we collect it, and how we protect it. By using DWIVE you agree to the terms of this policy.</p>
+  </div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">database</span>Data we collect</h2>
+    <ul>
+      <li><strong>Account data:</strong> username, email address, and hashed password when you register.</li>
+      <li><strong>User-generated content:</strong> reviews, star ratings, photos, and event bookmarks you create.</li>
+      <li><strong>Session data:</strong> a secure HTTP-only cookie to keep you logged in.</li>
+      <li><strong>Usage data:</strong> standard server logs (IP address, browser type, pages visited) for security and
+        debugging — retained for 30 days.</li>
+    </ul>
+    <p>We do <strong>not</strong> collect payment information, precise geolocation, or government IDs.</p>
+  </div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">settings</span>How we use your data</h2>
+    <ul>
+      <li>Authenticating your account and securing your session.</li>
+      <li>Displaying your reviews and photos on event pages (with your username).</li>
+      <li>Sending transactional emails such as password reset links (when implemented).</li>
+      <li>Improving platform performance and diagnosing errors via server logs.</li>
+    </ul>
+    <p>We do <strong>not</strong> sell, rent, or share your personal data with third parties for marketing purposes.</p>
+  </div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">cookie</span>Cookies</h2>
+    <p>We use a single first-party session cookie (<code>access_token</code>) to maintain your login state. No
+      third-party tracking cookies are set. See our <a href="/cookies" style="color:#0e6e96">Cookie Policy</a> for
+      details.</p>
+  </div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">gavel</span>Your rights</h2>
+    <ul>
+      <li><strong>Access:</strong> request a copy of the personal data we hold about you.</li>
+      <li><strong>Correction:</strong> update your username or email from your profile page.</li>
+      <li><strong>Deletion:</strong> request full account deletion by emailing hello@dwive.tt.</li>
+      <li><strong>Portability:</strong> request your data in a machine-readable format.</li>
+    </ul>
+  </div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">lock</span>Data security</h2>
+    <p>Passwords are hashed using bcrypt before storage. Session tokens are signed with a server-side secret key. The
+      database is not exposed to the public internet. We take reasonable technical and organisational measures to
+      protect your data against unauthorised access, loss, or disclosure.</p>
+  </div>
+
+  <div class="static-card">
+    <h2><span class="material-symbols-outlined">mail</span>Contact</h2>
+    <p>For privacy-related enquiries contact <a href="mailto:hello@dwive.tt" style="color:#0e6e96">hello@dwive.tt</a> or
+      use our <a href="/contact" style="color:#0e6e96">contact form</a>.</p>
+  </div>
+</div>
+{% endmacro %}
+
+{% block subpage_content %}{{ body() }}{% endblock %}
+{% block content %}{{ body() }}{% endblock %}

@@ -11,7 +11,6 @@ from app.schemas.event import EventFilter
 from app.models.event import Island, EventCategory
 from . import router, templates
 
-
 @router.get("/events", response_class=HTMLResponse)
 async def events_index(
     request: Request,
@@ -24,10 +23,20 @@ async def events_index(
     date_to: str = "",
     min_price: str = "",
     max_price: str = "",
+    price_range: str = "",
     page: int = 1,
 ):
     if user.role == "admin":
         return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+    resolved_min = float(min_price) if min_price else None
+    resolved_max = float(max_price) if max_price else None
+
+    if price_range == "free":
+        resolved_min, resolved_max = None, 0.0
+        
+    elif price_range == "paid":
+        resolved_min = 0.01
 
     filters = EventFilter(
         island=island or None,
@@ -35,8 +44,9 @@ async def events_index(
         keyword=keyword or None,
         date_from=datetime.fromisoformat(date_from) if date_from else None,
         date_to=datetime.fromisoformat(date_to) if date_to else None,
-        min_price=float(min_price) if min_price else None,
-        max_price=float(max_price) if max_price else None,
+        min_price=resolved_min,
+        max_price=resolved_max,
+        price_range=price_range or None,
     )
 
     service = EventService(EventRepository(db))
@@ -57,6 +67,7 @@ async def events_index(
                 "island": island, "category": category, "keyword": keyword,
                 "date_from": date_from, "date_to": date_to,
                 "min_price": min_price, "max_price": max_price,
+                "price_range": price_range,
             },
         },
     )
@@ -65,16 +76,21 @@ async def events_index(
 async def events_map(request: Request, user: AuthDep, db: SessionDep):
     if user.role == "admin":
         return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
-
+        
     service = EventService(EventRepository(db))
     events = service.get_all_for_map()
-
+    
     events_json = json.dumps([
         {
-            "id": e.id, "title": e.title, "island": e.island.value,
-            "venue": e.venue, "date": e.date.isoformat(),
-            "price": e.price, "category": e.category.value,
+            "id": e.id, 
+            "title": e.title, 
+            "island": e.island.value,
+            "venue": e.venue, 
+            "date": e.date.isoformat(),
+            "price": e.price, 
+            "category": e.category.value,
         }
+        
         for e in events
     ])
     

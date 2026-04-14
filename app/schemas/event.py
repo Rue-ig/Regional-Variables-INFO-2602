@@ -1,6 +1,6 @@
 # PATH: app/schemas/event.py
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 from app.models.event import Island, EventCategory, EventStatus
 
@@ -58,3 +58,4 @@ class EventFilter(BaseModel):
     min_price: Optional[float] = None
     max_price: Optional[float] = None
     keyword: Optional[str] = None
+    price_range: Optional[Literal["free", "paid", ""]] = None

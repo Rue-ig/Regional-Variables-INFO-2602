@@ -19,7 +19,6 @@ dependencies = [
     "itsdangerous",
     "jinja2",
     "lxml",
-    "playwright",
     "pwdlib[argon2]",
     "psycopg2-binary",
     "pyjwt",
