@@ -20,10 +20,11 @@ async def user_home_view(request: Request, db: SessionDep, user: UserDep):
     featured_events = db.exec(select(Event).limit(8)).all()
     
     raw_reviews = db.exec(select(Review).limit(3)).all()
-    featured_reviews = [
-        {"review": r, "username": db.get(User, r.user_id).username if db.get(User, r.user_id) else "Anonymous"}
-        for r in raw_reviews
-    ]
+    for r in raw_reviews:
+        u = db.get(User, r.user_id)
+        r.username = u.username if u else "Anonymous"
+    
+    featured_reviews = raw_reviews
     
     return templates.TemplateResponse(
         request=request,
