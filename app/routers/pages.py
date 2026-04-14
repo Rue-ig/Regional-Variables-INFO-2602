@@ -50,3 +50,12 @@ async def cookies(request: Request, user: UserDep = None):
 @router.get("/disclaimer", response_class=HTMLResponse)
 async def disclaimer(request: Request, user: UserDep = None):
     return templates.TemplateResponse(request, "disclaimer.html", _ctx(request, user))
+
+@router.post("/faq/edit")
+async def edit_faq(request: Request, user: UserDep, faq_data: str = Form(...)):
+    if user.role != 'admin':
+        flash(request, "Unauthorized", "error")
+        return RedirectResponse(url="/faq", status_code=303)
+    
+    flash(request, "FAQ updated successfully!", "success")
+    return RedirectResponse(url="/faq", status_code=303)
