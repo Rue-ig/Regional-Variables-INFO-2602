@@ -65,3 +65,8 @@ class Event(EventBase, table=True):
     albums: List["Album"] = Relationship(back_populates="events", link_model=AlbumEventLink)
     reviews: List["Review"] = Relationship(back_populates="event")
     photos: List["Photo"] = Relationship(back_populates="event")
+
+    @property
+    def random_num(self):
+        import random
+        return random.randint(1, 10)

@@ -10,6 +10,7 @@ from app.models.album import Album, AlbumEventLink
 from app.models.event_status import UserEventStatus
 from sqlmodel import select
 from . import router, templates
+import random
 
 @router.get("/bookmarks", response_class=HTMLResponse)
 async def bookmarks_page(request: Request, db: SessionDep, user: AuthDep):
@@ -26,6 +27,7 @@ async def bookmarks_page(request: Request, db: SessionDep, user: AuthDep):
 
     for r in user_reviews:
         r._event_title = r.event.title if r.event else "Unknown Event"
+
 
     return templates.TemplateResponse(
         request=request,
