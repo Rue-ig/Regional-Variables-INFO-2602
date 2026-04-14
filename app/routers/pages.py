@@ -69,8 +69,17 @@ async def cookies(request: Request, user: UserDep = None):
 async def disclaimer(request: Request, user: UserDep = None):
     return templates.TemplateResponse(request, "pages/disclaimer.html", _ctx(request, user))
 
+@router.get("/admin/faq/edit", response_class=HTMLResponse)
+async def admin_faq_page(request: Request, db: SessionDep, user: AdminDep):
+    faqs = db.exec(select(FAQ).order_by(FAQ.category, FAQ.order)).all()
+    return templates.TemplateResponse(
+        request, 
+        "Admin/faq_edit.html",
+        _ctx(request, user, faqs=faqs)
+    )
+
 @router.post("/faq/edit")
-async def edit_faq(request: Request, user: AdminDep, db: SessionDep):
+async def edit_faq_redirect(request: Request, user: AdminDep):
     return RedirectResponse(url="/admin/faq/edit", status_code=303)
 
 @router.post("/admin/faq/add")
@@ -88,4 +97,4 @@ async def add_faq(
     db.commit()
     flash(request, "New FAQ added!", "success")
     
-    return RedirectResponse(url="/faq", status_code=303)
+    return RedirectResponse(url="/admin/faq/edit", status_code=303)
