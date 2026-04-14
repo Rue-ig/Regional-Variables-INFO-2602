@@ -22,8 +22,7 @@
                     <div class="d-flex align-items-center mb-4">
                         <div class="position-relative">
                             {% if user.avatar_url %}
-                            <img src="{{ user.avatar_url }}" alt = "static/img/profile_pic.jpg" class="rounded-circle border shadow-sm"
-                                style="width:64px;height:64px;object-fit:cover;" alt="{{ user.username }}">
+                            <img src="{{ user.avatar_url }}" alt="{{ user.username }}" class="rounded-circle border shadow-sm" style="width: 64px; height: 64px; object-fit: cover;">
                             {% else %}
                             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
                                 style="width:64px;height:64px;">
