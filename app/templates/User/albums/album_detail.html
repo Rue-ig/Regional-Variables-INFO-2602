@@ -13,9 +13,17 @@
     <h1 class="h3 fw-bold mb-0">{{ album.name }}</h1>
     {% if album.description %}<p class="text-muted mb-0">{{ album.description }}</p>{% endif %}
   </div>
-  <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-3 py-2 fs-6">
-    {{ events | length }} event{{ 's' if events | length != 1 else '' }}
-  </span>
+  
+  <div class="d-flex align-items-center gap-3">
+    <span class="badge bg-info-subtle text-info-emphasis rounded-pill px-3 py-2 fs-6">
+      {{ events | length }} event{{ 's' if events | length != 1 else '' }}
+    </span>
+    <form method="post" action="/albums/{{ album.id }}/delete" onsubmit="return confirm('Delete this entire album? This cannot be undone.');">
+      <button type="submit" class="btn btn-danger btn-sm rounded-pill fw-bold px-3">
+        <span class="material-symbols-outlined fs-6 align-middle">delete</span> Delete Album
+      </button>
+    </form>
+  </div>
 </div>
 
 {% if events %}
