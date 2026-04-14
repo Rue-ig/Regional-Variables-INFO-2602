@@ -167,10 +167,6 @@
             {% for event in featured_events %}
             <div class="swiper-slide">
                 <div class="slide-card-top">
-                    <div class="slide-actions">
-                        <span class="material-symbols-outlined action-icon">favorite</span>
-                        <span class="material-symbols-outlined action-icon">share</span>
-                    </div>
                     <img src="{{ event.image_url or '/static/img/placeholder.jpg' }}" alt="Event">
                 </div>
                 <div class="slide-info">
