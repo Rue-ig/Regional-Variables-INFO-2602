@@ -1,7 +1,6 @@
 {# PATH: app/templates/pages/about.html #}
 {% extends "authenticated-base.html" if user else "base.html" %}
-{% block title %}About Us{% endblock %}
-
+{% block title %}About Us – dwivé{% endblock %}
 {% block additional_styles %}
 <style>
   .static-page {
@@ -171,14 +170,13 @@
 </style>
 {% endblock %}
 
-{% macro body() %}
-<div class="static-page">
+{% set page_body %}
+<div class="static-page {% if not user %}pt-5 mt-4{% endif %}">
   <div class="static-hero">
     <div class="hero-icon"><span class="material-symbols-outlined">travel_explore</span></div>
     <h1>About DWIVE</h1>
     <p>Your Caribbean events aggregator — built in Trinidad, for the region.</p>
   </div>
-
   <div class="static-card">
     <h2><span class="material-symbols-outlined">flag</span>Our Mission</h2>
     <p>DWIVE was built to solve a real problem: Caribbean events are scattered across dozens of ticketing sites, social
@@ -187,7 +185,6 @@
     <p>From carnival fetes in Trinidad to jazz festivals in Saint Lucia, we aggregate, verify, and present events from
       across the Caribbean so you can browse, discover, and plan with ease.</p>
   </div>
-
   <div class="static-card">
     <h2><span class="material-symbols-outlined">bar_chart</span>By the numbers</h2>
     <div class="stat-row">
@@ -205,20 +202,16 @@
       </div>
     </div>
   </div>
-
   <div class="static-card">
     <h2><span class="material-symbols-outlined">build</span>How it works</h2>
     <ul>
       <li>Our scrapers pull event data from Eventbrite, Ticketmaster, islandetickets.com, trinijunglejuice.com, and more
         — automatically, every 12 hours.</li>
-      <li>Every event is reviewed by our admin team before it goes live, so you only see accurate, up-to-date listings.
-      </li>
-      <li>Community members can submit events, leave reviews, and upload photos to enrich listings beyond what scrapers
-        can capture.</li>
+      <li>Every event is reviewed by our admin team before it goes live.</li>
+      <li>Community members can submit events, leave reviews, and upload photos.</li>
       <li>Promoters can contact us directly to have their events featured.</li>
     </ul>
   </div>
-
   <div class="static-card">
     <h2><span class="material-symbols-outlined">group</span>The team</h2>
     <p>DWIVE is a student project developed at the University of the West Indies, St. Augustine, as part of the INFO
@@ -231,14 +224,13 @@
       </div>
     </div>
   </div>
-
   <div class="static-card">
     <h2><span class="material-symbols-outlined">mail</span>Get in touch</h2>
-    <p>Have an event to list, a partnership proposal, or a bug to report? We'd love to hear from you. Head to our <a
-        href="/contact">contact page</a> or email us at <a href="mailto:hello@dwive.tt">hello@dwive.tt</a>.</p>
+    <p>Have an event to list, a partnership proposal, or a bug to report? Head to our <a href="/contact">contact
+        page</a> or email us at <a href="mailto:hello@dwive.tt">hello@dwive.tt</a>.</p>
   </div>
 </div>
-{% endmacro %}
+{% endset %}
 
-{% block subpage_content %}{{ body() }}{% endblock %}
-{% block content %}{{ body() }}{% endblock %}
+{% block subpage_content %}{{ page_body }}{% endblock %}
+{% block content %}<div class="container">{{ page_body }}</div>{% endblock %}
