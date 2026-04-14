@@ -318,7 +318,7 @@
               </small>
             </div>
 
-            <div style = "justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
               <div class="d-flex align-items-center gap-2">
                 <button
                   class="vote-btn up {% if user_review_votes and user_review_votes.get(review.id) == 'up' %}active{% endif %}"
@@ -331,21 +331,56 @@
                   data-review-id="{{ review.id }}" data-vote="down" onclick="voteReview(this)">
                   <span class="material-symbols-outlined" style="font-size:14px;">thumb_down</span>
                   <span class="down-count">{{ review.downvotes or 0 }}</span>
-              </button>
-              </div>
-              <div>
-                <button type="button" 
-                  class="btn btn-sm btn-outline-danger report-btn" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#reportModal"
-                  data-item-id="{{ item_id }}"
-                  data-item-type="{{ item_type }}"
-                  data-item-title="{{ item_title }}">
-                  <span class="material-symbols-outlined" style="font-size:14px;">report</span>
-                  Report
                 </button>
               </div>
+              
+              <button type="button" 
+                class="btn btn-sm btn-outline-danger report-btn" 
+                data-bs-toggle="modal" 
+                data-bs-target="#reportModal"
+                data-item-id="{{ item_id }}"
+                data-item-type="{{ item_type }}"
+                data-item-title="{{ item_title }}">
+                <span class="material-symbols-outlined" style="font-size:14px;">report</span>
+                Report
+              </button>
+            </div>  
+
+            <div class="modal fade" id="reportModal" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Report {{ item_type }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <form id="reportForm" method="post">
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Reason *</label>
+                        <select name="reason" class="form-select" required>
+                          <option value="">Select a reason...</option>
+                          <option value="Spam">Spam or advertising</option>
+                          <option value="Inappropriate">Inappropriate content</option>
+                          <option value="Harassment">Harassment</option>
+                          <option value="Offensive">Offensive language</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Additional details (optional)</label>
+                        <textarea name="details" class="form-control" rows="3" 
+                                  placeholder="Please provide more context..."></textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-danger">Submit Report</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
         {% endfor %}
