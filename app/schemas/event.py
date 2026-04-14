@@ -6,7 +6,7 @@ from app.models.event import Island, EventCategory, EventStatus
 
 class EventCreate(BaseModel):
     title: str
-    description: str
+    description: str = ""
     island: Island
     venue: str
     date: datetime
