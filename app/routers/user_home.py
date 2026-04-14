@@ -49,6 +49,7 @@ async def user_dashboard_view(request: Request, user: AuthDep, db: SessionDep):
     my_photos = db.exec(select(Photo).where(Photo.user_id == user.id)).all()
     my_reviews = db.exec(select(Review).where(Review.user_id == user.id)).all()
     my_bookmarks = db.exec(select(Bookmark).where(Bookmark.user_id == user.id)).all()
+    profile_pic = "/static/img/profile_pic.jpg"
 
     return templates.TemplateResponse(
         request=request, 
@@ -58,7 +59,8 @@ async def user_dashboard_view(request: Request, user: AuthDep, db: SessionDep):
             "user": user,
             "photos": my_photos,
             "reviews": my_reviews,
-            "bookmarks": my_bookmarks
+            "bookmarks": my_bookmarks,
+            "profile_pic": profile_pic
         }
     )
 
