@@ -10,14 +10,15 @@ from app.services.scraper_service import ScraperService
 logger = logging.getLogger(__name__)
 
 API_URL = "https://staging.trinijunglejuice.com/api/events"
+
 CATEGORY_MAP = {
-    "Carnival": "Festival",
+    "Carnival": "Carnival",
     "Soca / Calypso": "Music",
     "Reggae / Dancehall": "Music",
     "DJ Party": "Nightlife",
-    "All Inclusive (Food & Drink)": "Food_Drink",
+    "All Inclusive (Food & Drink)": "Food & Drink",
     "Sports": "Sports",
-    "Culture": "Culture_Arts",
+    "Culture": "Culture & Arts",
 }
 
 def _detect_island(location: dict) -> str:
