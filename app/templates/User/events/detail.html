@@ -1,4 +1,5 @@
 {# PATH: app/templates/User/events/detail.html #}
+
 {% extends "authenticated-base.html" %}
 {% block title %}{{ event.title }} – Caribbean Events{% endblock %}
 {% block additional_styles %}
@@ -7,7 +8,7 @@
   .sticky-top {
     z-index: 10 !important;
   }
-  
+
   .star-picker {
     display: flex;
     gap: 5px;
@@ -127,18 +128,38 @@
     background: #f9fafb;
   }
 
-  .vote-btn.up:hover,
   .vote-btn.up.active {
     border-color: #10b981;
     color: #059669;
     background: #ecfdf5;
   }
 
-  .vote-btn.down:hover,
   .vote-btn.down.active {
     border-color: #ef4444;
     color: #dc2626;
     background: #fef2f2;
+  }
+
+  .reviewer-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .reviewer-initials {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #6366f1;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   #lightbox {
@@ -198,7 +219,6 @@
         <span class="badge bg-info">{{ event.island.value }}</span>
         <span class="badge bg-secondary">{{ event.category.value }}</span>
       </div>
-
       <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
 
       {% if event.image_url %}
@@ -214,7 +234,8 @@
       {% if photos %}
       <section class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3 class="h4 mb-0">Community Photos <span class="badge bg-secondary ms-1 fs-6">{{ photos|length }}</span>
+          <h3 class="h4 mb-0">Community Photos
+            <span class="badge bg-secondary ms-1 fs-6">{{ photos|length }}</span>
           </h3>
         </div>
         <div class="photo-gallery">
@@ -222,19 +243,16 @@
           <div class="photo-item">
             <img src="{{ photo.filepath }}" alt="{{ photo.caption or 'Event photo' }}" style="cursor:zoom-in;"
               onclick="openLightbox('{{ photo.filepath }}', '{{ photo.caption or '' }}')">
-
             <button class="heart-btn" data-photo-id="{{ photo.id }}" onclick="heartPhoto(this, {{ photo.id }})">
               <span class="material-symbols-outlined"
                 style="font-size:14px;font-variation-settings:'FILL' 0;">favorite</span>
               <span class="heart-count">{{ photo.hearts or 0 }}</span>
             </button>
-
             {% if user and (user.id == photo.user_id or user.role == 'admin') %}
             <form action="/photos/{{ photo.id }}/delete" method="POST">
               <button type="submit" class="delete-photo-btn" onclick="return confirm('Delete this photo?');">×</button>
             </form>
             {% endif %}
-
             {% if photo.caption %}
             <div
               style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:18px 6px 5px;pointer-events:none;">
@@ -267,7 +285,6 @@
           <span class="ms-2 badge bg-warning text-dark">★ {{ avg_rating }}</span>
           {% endif %}
         </h3>
-
         {% if reviews %}
         {% for review in reviews %}
         <div class="card mb-3 border-0 shadow-sm" id="review-{{ review.id }}">
@@ -283,20 +300,32 @@
               </form>
               {% endif %}
             </div>
+            <p class="mb-2">{{ review.body }}</p>
 
-            <p class="mb-1">{{ review.body }}</p>
-            <small class="text-muted d-block mb-3">
-              {% if review.user %}{{ review.user.username }} · {% endif %}
-              {{ review.created_at.strftime('%d %b %Y') }}
-            </small>
+            <div class="d-flex align-items-center gap-2 mb-3">
+              {% if review.user and review.user.avatar_url %}
+              <img src="{{ review.user.avatar_url }}" class="reviewer-avatar" alt="{{ review.user.username }}">
+              {% elif review.user %}
+              <div class="reviewer-initials">{{ review.user.username[:2] | upper }}</div>
+              {% else %}
+              <div class="reviewer-initials">?</div>
+              {% endif %}
+              <small class="text-muted">
+                {% if review.user %}{{ review.user.username }} · {% endif %}
+                {{ review.created_at.strftime('%d %b %Y') }}
+              </small>
+            </div>
 
             <div class="d-flex align-items-center gap-2">
-              <button class="vote-btn up" data-review-id="{{ review.id }}" data-vote="up" onclick="voteReview(this)">
+              <button
+                class="vote-btn up {% if user_review_votes and user_review_votes.get(review.id) == 'up' %}active{% endif %}"
+                data-review-id="{{ review.id }}" data-vote="up" onclick="voteReview(this)">
                 <span class="material-symbols-outlined" style="font-size:14px;">thumb_up</span>
                 <span class="up-count">{{ review.upvotes or 0 }}</span>
               </button>
-              <button class="vote-btn down" data-review-id="{{ review.id }}" data-vote="down"
-                onclick="voteReview(this)">
+              <button
+                class="vote-btn down {% if user_review_votes and user_review_votes.get(review.id) == 'down' %}active{% endif %}"
+                data-review-id="{{ review.id }}" data-vote="down" onclick="voteReview(this)">
                 <span class="material-symbols-outlined" style="font-size:14px;">thumb_down</span>
                 <span class="down-count">{{ review.downvotes or 0 }}</span>
               </button>
@@ -329,7 +358,6 @@
         </div>
       </div>
       {% endif %}
-
     </div>{# end col-lg-8 #}
 
     <div class="col-lg-4">
@@ -343,13 +371,11 @@
           <p><strong>💰 Price:</strong>
             {% if event.price %}${{ "%.2f"|format(event.price) }}{% else %}Free{% endif %}
           </p>
-
           {% if event.source_url %}
           <a href="{{ event.source_url }}" target="_blank" class="btn btn-primary w-100 mb-2">
             Visit Official Site
           </a>
           {% endif %}
-
           <button class="btn w-100 mb-3 {{ 'btn-success' if is_bookmarked else 'btn-outline-primary' }}"
             onclick="toggleBookmark(this)" data-event-id="{{ event.id }}">
             {{ '🔖 Saved' if is_bookmarked else '🔖 Save Event' }}
@@ -377,7 +403,6 @@
 
           <hr class="opacity-25">
           <p class="fw-bold small text-uppercase text-muted mb-2">Albums</p>
-
           {% if user_albums %}
           <form method="post" id="albumForm" class="d-flex gap-2 mb-2">
             <select name="album_id" id="albumSelect" class="form-select form-select-sm rounded-pill">
@@ -391,19 +416,15 @@
             </button>
           </form>
           {% endif %}
-
           <button class="btn btn-sm btn-outline-primary w-100 rounded-pill mt-1" data-bs-toggle="modal"
             data-bs-target="#createAlbumModal">
-            <span class="material-symbols-outlined fs-6 align-middle">create_new_folder</span>
-            New Album
+            <span class="material-symbols-outlined fs-6 align-middle">create_new_folder</span> New Album
           </button>
           {% endif %}
-
         </div>
       </div>
     </div>
-
-  </div>{# end row #}
+  </div>
 </div>
 
 <div class="modal fade" id="createAlbumModal" tabindex="-1">
@@ -439,7 +460,6 @@
   <img id="lightbox-img" src="" alt="">
   <p id="lightbox-caption"></p>
 </div>
-
 {% endblock %}
 
 {% block subpage_scripts %}
@@ -448,10 +468,9 @@
     const id = btn.dataset.eventId;
     const res = await fetch(`/api/bookmarks/toggle/${id}`, { method: 'POST' });
     const data = await res.json();
+
     btn.textContent = data.bookmarked ? '🔖 Saved' : '🔖 Save Event';
-    btn.className = data.bookmarked
-      ? 'btn btn-success w-100 mb-3'
-      : 'btn btn-outline-primary w-100 mb-3';
+    btn.className = data.bookmarked ? 'btn btn-success w-100 mb-3' : 'btn btn-outline-primary w-100 mb-3';
   }
 
   let selectedRating = 0;
@@ -460,6 +479,7 @@
     label.addEventListener('mouseover', () => highlight(idx + 1));
     label.addEventListener('mouseleave', () => highlight(selectedRating));
   });
+
   function highlight(n) {
     document.querySelectorAll('#starPicker .star').forEach((s, i) => {
       s.style.color = i < n ? '#f59e0b' : '';
@@ -469,30 +489,51 @@
   async function voteReview(btn) {
     const reviewId = btn.dataset.reviewId;
     const vote = btn.dataset.vote;
+    const card = document.getElementById(`review-${reviewId}`);
+    const upBtn = card.querySelector('.vote-btn.up');
+    const downBtn = card.querySelector('.vote-btn.down');
+
+    const newVote = btn.classList.contains('active') ? 'none' : vote;
 
     const form = new FormData();
-    form.append('vote', vote);
-
+    form.append('vote', newVote);
     const res = await fetch(`/reviews/${reviewId}/vote`, { method: 'POST', body: form });
-    if (!res.ok) return;
+
+    if (!res.ok)
+      return;
+
     const data = await res.json();
 
-    const card = document.getElementById(`review-${reviewId}`);
     card.querySelector('.up-count').textContent = data.upvotes;
     card.querySelector('.down-count').textContent = data.downvotes;
 
-    btn.classList.add('active');
-    btn.disabled = true;
+    upBtn.classList.remove('active');
+    downBtn.classList.remove('active');
+    if (newVote === 'up')
+      upBtn.classList.add('active');
+
+    else if (newVote === 'down')
+      downBtn.classList.add('active');
   }
 
   async function heartPhoto(btn, photoId) {
     const res = await fetch(`/photos/${photoId}/heart`, { method: 'POST' });
-    if (!res.ok) return;
+    if (!res.ok)
+      return;
+
     const data = await res.json();
     btn.querySelector('.heart-count').textContent = data.hearts;
-    btn.classList.add('hearted');
-    btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
-    btn.disabled = true;
+    const icon = btn.querySelector('.material-symbols-outlined');
+
+    if (data.hearted) {
+      btn.classList.add('hearted');
+      icon.style.fontVariationSettings = "'FILL' 1";
+    }
+
+    else {
+      btn.classList.remove('hearted');
+      icon.style.fontVariationSettings = "'FILL' 0";
+    }
   }
 
   function openLightbox(src, caption) {
@@ -501,10 +542,12 @@
     document.getElementById('lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
+
   function closeLightbox() {
     document.getElementById('lightbox').classList.remove('open');
     document.body.style.overflow = '';
   }
+
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
 {% endblock %}
