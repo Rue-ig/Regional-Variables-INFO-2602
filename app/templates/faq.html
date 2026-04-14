@@ -1,4 +1,4 @@
-{# PATH: app/templates/pages/faq.html #}
+{# PATH: app/templates/faq.html #}
 {% extends "authenticated-base.html" if user else "base.html" %}
 {% block title %}FAQ{% endblock %}
 
@@ -123,6 +123,14 @@
 
 {% macro body() %}
 <div class="static-page">
+  {% if user and user.role == 'admin' %}
+  <div class="text-end mb-3">
+    <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-2">
+      <span class="material-symbols-outlined" style="font-size: 16px;">edit</span> Edit Content
+    </button>
+  </div>
+  {% endif %}
+
   <div class="static-hero">
     <div class="hero-icon"><span class="material-symbols-outlined">help</span></div>
     <h1>Frequently Asked Questions</h1>
@@ -132,16 +140,10 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">manage_search</span>Using the platform</h2>
     {% for q, a in [
-    ("How do I find events near me?", "Use the island filter on the Browse Events page. Select your island from the
-    dropdown, and all events in that territory will appear. You can further narrow results by category, date range, or
-    keyword."),
-    ("Are all events free to attend?", "No — some events have ticket prices and some are free. Use the Price filter on
-    the browse page and select \"Free\" to see only no-cost events."),
-    ("How up-to-date is the information?", "Our scrapers refresh event data every 12 hours from multiple ticketing
-    sources. For time-sensitive information like last-minute cancellations, always verify with the official organiser
-    before attending."),
-    ("Can I filter by multiple islands at once?", "Not yet — the current filter supports one island at a time.
-    Multi-island filtering is on our roadmap."),
+    ("How do I find events near me?", "Use the island filter on the Browse Events page. Select your island from the dropdown, and all events in that territory will appear. You can further narrow results by category, date range, or keyword."),
+    ("Are all events free to attend?", "No — some events have ticket prices and some are free. Use the Price filter on the browse page and select \"Free\" to see only no-cost events."),
+    ("How up-to-date is the information?", "Our scrapers refresh event data every 12 hours from multiple ticketing sources. For time-sensitive information like last-minute cancellations, always verify with the official organiser before attending."),
+    ("Can I filter by multiple islands at once?", "Not yet — the current filter supports one island at a time. Multi-island filtering is on our roadmap."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -153,12 +155,9 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">account_circle</span>Accounts & profiles</h2>
     {% for q, a in [
-    ("Do I need an account to browse events?", "No — the events listing and map are publicly accessible. You only need
-    an account to save bookmarks, leave reviews, or upload photos."),
-    ("How do I change my username or email?", "Log in and go to My Profile (/app). You can update your username and
-    email from there. Usernames must be unique across the platform."),
-    ("I forgot my password. What do I do?", "Password reset by email is coming soon. In the meantime, contact us at
-    hello@dwive.tt and we'll assist you manually."),
+    ("Do I need an account to browse events?", "No — the events listing and map are publicly accessible. You only need an account to save bookmarks, leave reviews, or upload photos."),
+    ("How do I change my username or email?", "Log in and go to My Profile (/app). You can update your username and email from there. Usernames must be unique across the platform."),
+    ("I forgot my password. What do I do?", "Password reset by email is coming soon. In the meantime, contact us at hello@dwive.tt and we'll assist you manually."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -170,12 +169,9 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">add_circle</span>Submitting & editing events</h2>
     {% for q, a in [
-    ("How do I submit an event?", "Register for an account, then use the Submit Event form. Your submission goes to our
-    admin team for review before it goes live — usually within 24 hours."),
-    ("How do I edit my event after submitting?", "Contact us at hello@dwive.tt with the event title and the changes you
-    need. Self-serve editing for promoters is on the roadmap."),
-    ("Why was my event rejected?", "Events may be rejected if the date has already passed, information is incomplete, or
-    the event is outside our coverage area. You'll receive a message explaining the reason."),
+    ("How do I submit an event?", "Register for an account, then use the Submit Event form. Your submission goes to our admin team for review before it goes live — usually within 24 hours."),
+    ("How do I edit my event after submitting?", "Contact us at hello@dwive.tt with the event title and the changes you need. Self-serve editing for promoters is on the roadmap."),
+    ("Why was my event rejected?", "Events may be rejected if the date has already passed, information is incomplete, or the event is outside our coverage area. You'll receive a message explaining the reason."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -187,12 +183,9 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">shield</span>Privacy & data</h2>
     {% for q, a in [
-    ("What data do you collect?", "We collect your email, username, and hashed password for authentication. We also
-    store any reviews, photos, or bookmarks you create. See our Privacy Policy for full details."),
-    ("Can I delete my account?", "Yes — email hello@dwive.tt and we will delete your account and associated data within
-    5 business days."),
-    ("Do you sell my data?", "Never. DWIVE does not sell or share personal data with third parties. See our Privacy
-    Policy for the full breakdown."),
+    ("What data do you collect?", "We collect your email, username, and hashed password for authentication. We also store any reviews, photos, or bookmarks you create. See our Privacy Policy for full details."),
+    ("Can I delete my account?", "Yes — email hello@dwive.tt and we will delete your account and associated data within 5 business days."),
+    ("Do you sell my data?", "Never. DWIVE does not sell or share personal data with third parties. See our Privacy Policy for the full breakdown."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -214,5 +207,9 @@
 {% if user %}
     {% block subpage_content %}{{ body() }}{% endblock %}
 {% else %}
-    {% block content %}{{ body() }}{% endblock %}
+    {% block content %}
+        <div class="container py-5">
+            {{ body() }}
+        </div>
+    {% endblock %}
 {% endif %}
