@@ -843,7 +843,7 @@
       </div>
 
       <div id="albumList">
-        {% for album in albums %}
+        {% for album in user_albums %}
           {% set in_album = event.id in album.events | map(attribute='id') | list %}
           
           <div class="album-row {% if in_album %}selected{% endif %}" 
@@ -863,14 +863,13 @@
               </div>
             </div>
 
-            <form action="/albums/{{ album.id }}/delete" method="POST" 
-                  onsubmit="return confirm('Delete this album?');" 
-                  onclick="event.stopPropagation();"
-                  class="ms-auto me-2">
-              <button type="submit" class="btn btn-link text-danger p-0 border-0">
-                <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-              </button>
-            </form>
+            <div class="ms-auto me-2" onclick="event.stopPropagation();">
+            <button type="button" 
+                    class="btn btn-link text-danger p-0 border-0"
+                    onclick="deleteAlbum(event, {{ album.id }}, this)">
+              <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+            </button>
+            </div>
 
             <div class="album-row-check">
               <span class="material-symbols-outlined">check_circle</span>
@@ -981,8 +980,11 @@
         upBtn.classList.remove('active');
         downBtn.classList.remove('active');
 
-        if (newVote === 'up') upBtn.classList.add('active');
-        else if (newVote === 'down') downBtn.classList.add('active');
+        if (newVote === 'up')
+          upBtn.classList.add('active');
+
+        else if (newVote === 'down')
+          downBtn.classList.add('active');
       }
     } catch (err) {
       console.error("Vote failed:", err);
@@ -1164,6 +1166,33 @@
     toast.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">${isError ? 'error' : 'check_circle'}</span> ${message}`;
     document.body.appendChild(toast);
     _toastTimeout = setTimeout(() => toast.remove(), 3000);
+  }
+
+  async function deleteAlbum(e, albumId, btn) {
+    e.stopPropagation();
+    if (!confirm('Delete this album? This cannot be undone.')) return;
+
+    try {
+      const res = await fetch(`/albums/${albumId}/delete`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (res.ok) {
+        const row = btn.closest('.album-row');
+        row.remove();
+        showToast('Album deleted');
+
+        if (!document.querySelector('#albumList .album-row')) {
+          document.getElementById('albumList').innerHTML =
+            '<div class="text-center p-4 text-muted"><p>No albums created yet.</p></div>';
+        }
+      } else {
+        const err = await res.json();
+        showToast(err.detail || 'Could not delete album', true);
+      }
+    } catch (err) {
+      showToast('Failed to delete album', true);
+    }
   }
 
   document.addEventListener('keydown', e => {
