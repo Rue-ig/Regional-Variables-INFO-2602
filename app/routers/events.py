@@ -7,7 +7,7 @@ import json
 from app.repositories.event import EventRepository
 from app.services.event_service import EventService
 from app.schemas.event import EventFilter
-from app.models.event import Island, EventCategory
+from app.models.event import Island, EventCategory, Event
 from app.models.album import Album, AlbumEventLink
 from app.models.review import Review
 from app.models.photo import Photo
