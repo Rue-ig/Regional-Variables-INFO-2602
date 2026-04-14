@@ -853,10 +853,12 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
             },
         });
         
         if (response.ok) {
+            const data = await response.json();
             const message = isChecked ? 'Added to album' : 'Removed from album';
             showToast(message);
             updateEventCount(albumId, isChecked ? 1 : -1);
@@ -872,7 +874,44 @@
         const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
         if (checkbox) checkbox.checked = !isChecked;
     }
-  }
+}
+
+async function createNewAlbum() {
+    const name = document.getElementById('newAlbumName').value.trim();
+    if (!name) {
+        showToast('Please enter an album name', true);
+        return;
+    }
+    
+    const description = document.getElementById('newAlbumDesc').value.trim();
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('name', name);
+        formData.append('description', description);
+        
+        const response = await fetch('/albums/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData.toString()
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            showToast(`Created "${data.name}"`);
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Failed to create album', true);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to create album', true);
+    }
+}
   
   
   function updateEventCount(albumId, delta) {
@@ -898,39 +937,6 @@
       document.getElementById('newAlbumDesc').value = '';
   }
   
-  async function createNewAlbum() {
-      const name = document.getElementById('newAlbumName').value.trim();
-      if (!name) {
-          showToast('Please enter an album name', true);
-          return;
-      }
-      
-      const description = document.getElementById('newAlbumDesc').value.trim();
-      
-      try {
-          const formData = new URLSearchParams();
-          formData.append('name', name);
-          formData.append('description', description);
-          
-          const response = await fetch('/albums/create', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: formData.toString()
-          });
-          
-          if (response.ok) {
-              showToast(`Created "${name}"`);
-              setTimeout(() => window.location.reload(), 500);
-          } else {
-              showToast('Failed to create album', true);
-          }
-      } catch (error) {
-          console.error('Error:', error);
-          showToast('Failed to create album', true);
-      }
-  }
   
   let toastTimeout;
   function showToast(message, isError = false) {
