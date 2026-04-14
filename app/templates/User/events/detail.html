@@ -1,8 +1,6 @@
 {# PATH: app/templates/events/detail.html #}
 {% extends "authenticated-base.html" %}
-
 {% block title %}{{ event.title }} – Caribbean Events{% endblock %}
-
 {% block additional_styles %}
 <link rel="stylesheet" href="/static/css/events.css">
 <style>
@@ -11,36 +9,30 @@
     gap: 5px;
     margin-bottom: 1rem;
   }
-
   .star-picker input {
     display: none;
   }
-
   .star-picker .star {
     font-size: 1.5rem;
     cursor: pointer;
     color: #ddd;
     transition: color 0.2s;
   }
-
   .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1rem;
     margin-bottom: 2rem;
   }
-
   .photo-item {
     position: relative;
   }
-
   .photo-grid img {
     width: 100%;
     border-radius: 8px;
     height: 120px;
     object-fit: cover;
   }
-
   .delete-photo-btn {
     position: absolute;
     top: 5px;
@@ -55,13 +47,11 @@
     font-size: 16px;
     cursor: pointer;
   }
-
   .delete-photo-btn:hover {
     background: rgba(220, 53, 69, 1);
   }
 </style>
 {% endblock %}
-
 {% block subpage_content %}
 <div class="container-fluid">
   <div class="row">
@@ -71,17 +61,14 @@
         <span class="badge bg-secondary">{{ event.category.value }}</span>
       </div>
       <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
-
       {% if event.image_url %}
       <img src="{{ event.image_url }}" class="img-fluid rounded-4 mb-4 w-100 shadow-sm"
         style="max-height: 400px; object-fit: cover;">
       {% endif %}
-
       <section class="mb-5">
         <h3 class="h4">About this event</h3>
         <p class="lead text-muted">{{ event.description }}</p>
       </section>
-
       {% if photos %}
       <section class="mb-5">
         <h3 class="h4">Community Photos</h3>
@@ -89,21 +76,18 @@
           {% for photo in photos %}
           <div class="photo-item">
             <img src="{{ photo.filepath }}" alt="Event photo">
-
             {% if user and (user.id == photo.user_id or user.role == 'admin') %}
             <form action="/photos/{{ photo.id }}/delete" method="POST">
               <button type="submit" class="delete-photo-btn"
                 onclick="return confirm('Delete this photo?');">&times;</button>
             </form>
             {% endif %}
-
             {% if photo.caption %}<small class="text-muted d-block mt-1">{{ photo.caption }}</small>{% endif %}
           </div>
           {% endfor %}
         </div>
       </section>
       {% endif %}
-
       <div class="card bg-light border-0 mb-5">
         <div class="card-body">
           <h4 class="h5">Contribute a Photo</h4>
@@ -116,7 +100,6 @@
           </form>
         </div>
       </div>
-
       <section class="mb-5">
         <h3 class="h4 d-flex align-items-center">
           Reviews
@@ -134,7 +117,6 @@
                 <p class="mb-1">{{ review.body }}</p>
                 <small class="text-muted">{{ review.created_at.strftime('%d %b %Y') }}</small>
               </div>
-
               {% if user and (user.id == review.user_id or user.role == 'admin') %}
               <form action="/reviews/{{ review.id }}/delete" method="POST">
                 <button type="submit" class="btn btn-link text-danger btn-sm p-0"
@@ -149,7 +131,6 @@
         <p class="text-muted">No approved reviews yet.</p>
         {% endif %}
       </section>
-
       {% if not already_reviewed %}
       <div class="card border-primary mb-5">
         <div class="card-body">
@@ -171,7 +152,6 @@
       </div>
       {% endif %}
     </div>
-
     <div class="col-lg-4">
       <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
         <div class="card-body">
@@ -182,11 +162,9 @@
           <p><strong>⏰ Time:</strong> {{ event.date.strftime('%I:%M %p') }}</p>
           <p><strong>💰 Price:</strong> {% if event.price %}${{ "%.2f"|format(event.price) }}{% else %}Free{% endif %}
           </p>
-
           {% if event.source_url %}
           <a href="{{ event.source_url }}" target="_blank" class="btn btn-primary w-100 mb-2">Visit Official Site</a>
           {% endif %}
-
           <button class="btn w-100 {{ 'btn-success' if is_bookmarked else 'btn-outline-primary' }}"
             onclick="toggleBookmark(this)" data-event-id="{{ event.id }}">
             {{ '🔖 Saved' if is_bookmarked else '🔖 Save Event' }}
@@ -197,7 +175,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block subpage_scripts %}
 <script>
   async function toggleBookmark(btn) {
@@ -208,9 +185,15 @@
     btn.className = data.bookmarked ? 'btn btn-success w-100 mb-2' : 'btn btn-outline-primary w-100 mb-2';
   }
 
+  let selectedRating = 0;
+
   document.querySelectorAll('#starPicker label').forEach((label, idx) => {
+    label.addEventListener('click', () => {
+      selectedRating = idx + 1;
+      highlight(selectedRating);
+    });
     label.addEventListener('mouseover', () => highlight(idx + 1));
-    label.addEventListener('mouseleave', () => highlight(0));
+    label.addEventListener('mouseleave', () => highlight(selectedRating));
   });
 
   function highlight(n) {
