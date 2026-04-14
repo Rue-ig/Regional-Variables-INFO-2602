@@ -57,7 +57,7 @@
           <img src="{{ event.image_url }}" class="card-img-top"
             style="height:200px;object-fit:cover;" alt="{{ event.title }}">
           {% else %}
-          <img src="https://placehold.net/{event.random_num()}.png" class="card-img-top"
+          <img src="https://placehold.net/{{ event.random_num() }}.png" class="card-img-top"
             style="height:200px;object-fit:cover;" alt="{{ event.title }}">
           {% endif %}
           <div class="position-absolute top-0 end-0 m-3">

@@ -69,4 +69,4 @@ class Event(EventBase, table=True):
     @property
     def random_num(self):
         import random
-        return random.randint(1, 10)
+        return lambda: random.randint(1, 10)
