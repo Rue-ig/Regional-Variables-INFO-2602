@@ -1076,31 +1076,32 @@
     const name = document.getElementById('newAlbumName').value.trim();
     if (!name) { showToast('Please enter an album name', true); return; }
     const description = document.getElementById('newAlbumDesc').value.trim();
-    const evtId = parseInt(document.getElementById('albumModalBackdrop').dataset.eventId);
+    const evtId = {{ event.id }
+  };
 
-    try {
-      const body = new URLSearchParams({ name, description });
-      const res = await fetch('/albums/create', {
+  try {
+    const body = new URLSearchParams({ name, description });
+    const res = await fetch('/albums/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+      body: body.toString()
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(`Album "${data.name}" created!`);
+      await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
-        body: body.toString()
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }
       });
-      if (res.ok) {
-        const data = await res.json();
-        showToast(`Album "${data.name}" created!`);
-        await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        setTimeout(() => window.location.reload(), 500);
-      } else {
-        const err = await res.json();
-        showToast(err.detail || 'Failed to create album', true);
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to create album', true);
+      setTimeout(() => window.location.reload(), 500);
+    } else {
+      const err = await res.json();
+      showToast(err.detail || 'Failed to create album', true);
     }
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to create album', true);
+  }
   }
 
   let _toastTimeout;
