@@ -36,6 +36,46 @@ def _detect_category(text: str) -> str:
         return 'Sports'
     
     return 'Other'
+    
+def _detect_island(text: str) -> str:
+    text = text.lower().replace("-", " ")
+    mapping = {
+        "port of spain":  "Trinidad",
+        "chaguaramas":    "Trinidad",
+        "san fernando":   "Trinidad",
+        "scarborough":    "Tobago",
+        "pigeon point":   "Tobago",
+        "bridgetown":     "Barbados",
+        "kingston":       "Jamaica",
+        "montego":        "Jamaica",
+        "nassau":         "Bahamas",
+        "georgetown":     "Guyana",
+        "tobago":         "Tobago",
+        "trinidad":       "Trinidad",
+        "barbados":       "Barbados",
+        "jamaica":        "Jamaica",
+        "antigua":        "Antigua",
+        "saint lucia":    "St. Lucia",
+        "st. lucia":      "St. Lucia",
+        "grenada":        "Grenada",
+        "st. vincent":    "St. Vincent",
+        "dominica":       "Dominica",
+        "bahamas":        "Bahamas",
+        "cayman":         "Cayman Islands",
+        "puerto rico":    "Puerto Rico",
+        "martinique":     "Martinique",
+        "guadeloupe":     "Guadeloupe",
+        "curacao":        "Curaçao",
+        "curaçao":        "Curaçao",
+        "aruba":          "Aruba",
+        "guyana":         "Guyana",
+    }
+    
+    for kw, island in mapping.items():
+        if kw in text:
+            return island
+            
+    return "Other"
 
 class CaribbeanEventsScraper:
     SOURCE_NAME = "caribbeanevents.com"
@@ -70,7 +110,8 @@ class CaribbeanEventsScraper:
             if resp.status_code == 200:
                 for item in resp.json():
                     if item.get('link'): urls.add(item.get('link'))
-        except: pass
+        except:
+            pass
 
         if not urls:
             logger.info("API failed. Scanning /event/ page...")
@@ -90,7 +131,8 @@ class CaribbeanEventsScraper:
 
             try:
                 title_el = soup.select_one("h1.entry-title, .cbp-l-project-title, h1")
-                if not title_el: return None
+                if not title_el:
+                    return None
                 title = title_el.get_text(strip=True)
 
                 content_el = soup.select_one(".cbp-l-project-desc, .entry-content, article")
@@ -104,6 +146,7 @@ class CaribbeanEventsScraper:
                         try:
                             date = datetime.strptime(raw, fmt)
                             break
+                            
                         except:
                             continue
 
@@ -128,7 +171,7 @@ class CaribbeanEventsScraper:
                 return {
                     "title": title,
                     "description": content_text[:1000],
-                    "island": "Trinidad" if "tobago" not in (title + content_text).lower() else "Tobago",
+                    "island": _detect_island(title + " " + content_text + " " + venue),
                     "venue": venue,
                     "date": date or datetime.now(),
                     "end_date": None,
@@ -186,6 +229,7 @@ class CaribbeanEventsScraper:
                             try:
                                 date = datetime.strptime(raw, fmt)
                                 break
+                                
                             except ValueError:
                                 continue
     
@@ -203,6 +247,7 @@ class CaribbeanEventsScraper:
                 if wrap_img:
                     style = wrap_img.get("style", "")
                     m = re.search(r"url\(['\"]?(https?://[^'\")\s]+)['\"]?\)", style)
+                    
                     if m:
                         image_url = m.group(1)
     
@@ -210,7 +255,7 @@ class CaribbeanEventsScraper:
                 records.append({
                     "title":       title,
                     "description": desc[:1000],
-                    "island":      "Tobago" if "tobago" in full_text.lower() else "Trinidad",
+                    "island": _detect_island(full_text + " " + venue),
                     "venue":       venue,
                     "date":        date,
                     "end_date":    None,
