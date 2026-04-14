@@ -1,4 +1,3 @@
-# PATH: app/main.py
 import uvicorn
 import uuid
 from fastapi import FastAPI, Request, status
@@ -6,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from .routers import templates, static_files, router, api_router
+from .routers.report import router as report_router
 from app.config import get_settings
 from contextlib import asynccontextmanager
 from app.database import get_cli_session, create_db_and_tables 
@@ -50,6 +50,7 @@ app.add_middleware(SessionMiddleware, secret_key=get_settings().secret_key)
 
 app.include_router(router)
 app.include_router(api_router)
+app.include_router(report_router)
 app.mount("/static", static_files, name="static")
 
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
