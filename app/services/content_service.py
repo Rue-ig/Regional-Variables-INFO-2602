@@ -78,6 +78,23 @@ class ReviewService:
             "user_vote": current_state
         }
 
+def get_pending(self) -> list[Review]:
+        return self.repo.get_pending()
+    
+    def approve(self, review_id: int) -> Review:
+        review = self.repo.get_by_id(review_id)
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+            
+        return self.repo.approve(review)
+
+    def delete(self, review_id: int) -> None:
+        review = self.repo.get_by_id(review_id)
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+            
+        self.repo.delete(review)
+
 class PhotoService:
     def __init__(self, repo: PhotoRepository):
         self.repo = repo
