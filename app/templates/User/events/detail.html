@@ -1,4 +1,4 @@
-{# PATH: app/templates/events/detail.html #}
+{# PATH: app/templates/User/events/detail.html #}
 {% extends "authenticated-base.html" %}
 {% block title %}{{ event.title }} – Caribbean Events{% endblock %}
 {% block additional_styles %}
@@ -52,23 +52,29 @@
   }
 </style>
 {% endblock %}
+
 {% block subpage_content %}
 <div class="container-fluid">
   <div class="row">
+
+    {# ── Main Content ── #}
     <div class="col-lg-8">
       <div class="mb-4">
         <span class="badge bg-info">{{ event.island.value }}</span>
         <span class="badge bg-secondary">{{ event.category.value }}</span>
       </div>
       <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
+
       {% if event.image_url %}
       <img src="{{ event.image_url }}" class="img-fluid rounded-4 mb-4 w-100 shadow-sm"
         style="max-height: 400px; object-fit: cover;">
       {% endif %}
+
       <section class="mb-5">
         <h3 class="h4">About this event</h3>
         <p class="lead text-muted">{{ event.description }}</p>
       </section>
+
       {% if photos %}
       <section class="mb-5">
         <h3 class="h4">Community Photos</h3>
@@ -88,6 +94,7 @@
         </div>
       </section>
       {% endif %}
+
       <div class="card bg-light border-0 mb-5">
         <div class="card-body">
           <h4 class="h5">Contribute a Photo</h4>
@@ -100,6 +107,7 @@
           </form>
         </div>
       </div>
+
       <section class="mb-5">
         <h3 class="h4 d-flex align-items-center">
           Reviews
@@ -131,6 +139,7 @@
         <p class="text-muted">No approved reviews yet.</p>
         {% endif %}
       </section>
+
       {% if not already_reviewed %}
       <div class="card border-primary mb-5">
         <div class="card-body">
@@ -152,6 +161,7 @@
       </div>
       {% endif %}
     </div>
+
     <div class="col-lg-4">
       <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
         <div class="card-body">
@@ -160,21 +170,72 @@
           <p><strong>📍 Venue:</strong> {{ event.venue }}</p>
           <p><strong>📅 Date:</strong> {{ event.date.strftime('%A, %d %B %Y') }}</p>
           <p><strong>⏰ Time:</strong> {{ event.date.strftime('%I:%M %p') }}</p>
-          <p><strong>💰 Price:</strong> {% if event.price %}${{ "%.2f"|format(event.price) }}{% else %}Free{% endif %}
+          <p><strong>💰 Price:</strong>
+            {% if event.price %}${{ "%.2f"|format(event.price) }}{% else %}Free{% endif %}
           </p>
+
           {% if event.source_url %}
-          <a href="{{ event.source_url }}" target="_blank" class="btn btn-primary w-100 mb-2">Visit Official Site</a>
+          <a href="{{ event.source_url }}" target="_blank" class="btn btn-primary w-100 mb-2">
+            Visit Official Site
+          </a>
           {% endif %}
-          <button class="btn w-100 {{ 'btn-success' if is_bookmarked else 'btn-outline-primary' }}"
+
+          <button class="btn w-100 mb-3 {{ 'btn-success' if is_bookmarked else 'btn-outline-primary' }}"
             onclick="toggleBookmark(this)" data-event-id="{{ event.id }}">
             {{ '🔖 Saved' if is_bookmarked else '🔖 Save Event' }}
           </button>
+
+          {% if user %}
+          <hr class="opacity-25">
+
+          <p class="fw-bold small text-uppercase text-muted mb-2">My Status</p>
+          <div class="d-flex gap-2 mb-3">
+            <form method="post" action="/bookmarks/status/{{ event.id }}" class="flex-fill">
+              <input type="hidden" name="status" value="attended">
+              <button type="submit" class="btn btn-sm w-100 rounded-pill fw-bold
+                {{ 'btn-success' if user_status == 'attended' else 'btn-outline-success' }}">
+                <span class="material-symbols-outlined fs-6 align-middle">check_circle</span>
+                Attended
+              </button>
+            </form>
+            <form method="post" action="/bookmarks/status/{{ event.id }}" class="flex-fill">
+              <input type="hidden" name="status" value="want_to_attend">
+              <button type="submit" class="btn btn-sm w-100 rounded-pill fw-bold
+                {{ 'btn-primary' if user_status == 'want_to_attend' else 'btn-outline-primary' }}">
+                <span class="material-symbols-outlined fs-6 align-middle">bookmark_add</span>
+                Want to Go
+              </button>
+            </form>
+          </div>
+
+          {% if user_albums %}
+          <p class="fw-bold small text-uppercase text-muted mb-2">Add to Album</p>
+          <form method="post" id="albumForm" class="d-flex gap-2 mb-2">
+            <select name="album_id" id="albumSelect" class="form-select form-select-sm rounded-pill">
+              {% for album in user_albums %}
+              <option value="{{ album.id }}">{{ album.name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill"
+              onclick="document.getElementById('albumForm').action='/albums/' + document.getElementById('albumSelect').value + '/add-event/{{ event.id }}'">
+              <span class="material-symbols-outlined fs-6">add</span>
+            </button>
+          </form>
+          {% else %}
+          <p class="text-muted small mb-0">
+            <a href="/bookmarks" class="text-decoration-none">Create an album</a> to organise events.
+          </p>
+          {% endif %}
+          {% endif %}
+
         </div>
       </div>
     </div>
+
   </div>
 </div>
 {% endblock %}
+
 {% block subpage_scripts %}
 <script>
   async function toggleBookmark(btn) {
@@ -182,11 +243,10 @@
     const res = await fetch(`/api/bookmarks/toggle/${id}`, { method: 'POST' });
     const data = await res.json();
     btn.textContent = data.bookmarked ? '🔖 Saved' : '🔖 Save Event';
-    btn.className = data.bookmarked ? 'btn btn-success w-100 mb-2' : 'btn btn-outline-primary w-100 mb-2';
+    btn.className = data.bookmarked ? 'btn btn-success w-100 mb-3' : 'btn btn-outline-primary w-100 mb-3';
   }
 
   let selectedRating = 0;
-
   document.querySelectorAll('#starPicker label').forEach((label, idx) => {
     label.addEventListener('click', () => {
       selectedRating = idx + 1;
