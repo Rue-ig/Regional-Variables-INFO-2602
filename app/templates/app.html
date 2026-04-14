@@ -21,16 +21,16 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-4">
                         <div class="position-relative">
-                            {% if user.avatar_url %}
-                            <img src="{{ user.avatar_url }}" class="rounded-circle border shadow-sm"
-                                style="width:64px;height:64px;object-fit:cover;" alt="{{ user.username }}">
-                            {% else %}
-                            <img src="/static/img/profile_pic.jpg" class="rounded-circle border shadow-sm"
-                                style="width:64px;height:64px;object-fit:cover;" alt="{{ user.username }}">
-                            {% endif %}
+                            <img src="{{ user.avatar_url if user.avatar_url else '/static/img/profile_pic.jpg' }}" 
+                                 class="rounded-circle border shadow-sm"
+                                 style="width:64px; height:64px; object-fit:cover;" 
+                                 alt="{{ user.username }}">
+                                 
                             <button class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-0"
-                                style="width:22px;height:22px;" data-bs-toggle="modal"
-                                data-bs-target="#editProfileModal" title="Change photo">
+                                    style="width:22px; height:22px;" 
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editProfileModal" 
+                                    title="Change photo">
                                 <span class="material-symbols-outlined" style="font-size:14px;">edit</span>
                             </button>
                         </div>
