@@ -1,4 +1,3 @@
-# PATH: app/routers/events.py
 from fastapi import Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from app.dependencies.session import SessionDep
@@ -9,6 +8,10 @@ from app.repositories.event import EventRepository
 from app.services.event_service import EventService
 from app.schemas.event import EventFilter
 from app.models.event import Island, EventCategory
+from app.models.album import Album, AlbumEventLink
+from app.models.review import Review
+from app.models.photo import Photo
+from sqlmodel import select
 from . import router, templates
 
 @router.get("/events", response_class=HTMLResponse)
@@ -90,7 +93,6 @@ async def events_map(request: Request, user: AuthDep, db: SessionDep):
             "price": e.price, 
             "category": e.category.value,
         }
-        
         for e in events
     ])
     
@@ -98,4 +100,73 @@ async def events_map(request: Request, user: AuthDep, db: SessionDep):
         request=request,
         name="User/events/map.html",
         context={"user": user, "events_json": events_json},
+    )
+
+@router.get("/events/{event_id}", response_class=HTMLResponse)
+async def event_detail(
+    request: Request,
+    event_id: int,
+    db: SessionDep,
+    user: AuthDep,
+):
+    event = db.get(Event, event_id)
+    if not event:
+        return RedirectResponse(url="/events", status_code=303)
+    
+    photos = db.exec(select(Photo).where(Photo.event_id == event_id)).all()
+    
+    reviews = db.exec(select(Review).where(Review.event_id == event_id)).all()
+    
+    avg_rating = None
+    if reviews:
+        total = sum(r.rating for r in reviews)
+        avg_rating = round(total / len(reviews), 1)
+    
+    albums = []
+    albums_with_event = set()
+    
+    if user:
+        albums = db.exec(
+            select(Album).where(Album.user_id == user.id).order_by(Album.created_at.desc())
+        ).all()
+        
+        for album in albums:
+            link = db.exec(
+                select(AlbumEventLink).where(
+                    AlbumEventLink.album_id == album.id,
+                    AlbumEventLink.event_id == event.id
+                )
+            ).first()
+            if link:
+                albums_with_event.add(album.id)
+    
+    already_reviewed = False
+    if user and reviews:
+        existing_review = db.exec(
+            select(Review).where(
+                Review.event_id == event_id,
+                Review.user_id == user.id
+            )
+        ).first()
+        already_reviewed = existing_review is not None
+    
+    is_bookmarked = False
+    user_status = None
+    
+    return templates.TemplateResponse(
+        request=request,
+        name="User/events/detail.html",
+        context={
+            "request": request,
+            "user": user,
+            "event": event,
+            "photos": photos,
+            "reviews": reviews,
+            "avg_rating": avg_rating,
+            "already_reviewed": already_reviewed,
+            "is_bookmarked": is_bookmarked,
+            "user_status": user_status,
+            "albums": albums,
+            "albums_with_event": albums_with_event,
+        },
     )
