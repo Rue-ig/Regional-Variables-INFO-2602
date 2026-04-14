@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.models.event import Event, EventStatus
 from app.schemas.event import EventCreate, EventUpdate, EventFilter
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 class EventRepository:
     def __init__(self, session: Session):
@@ -123,7 +123,6 @@ class EventRepository:
         return self.session.exec(select(func.count(Event.id))).one()
     
     def count_weekly_approved(self) -> int:
-        from datetime import timedelta, timezone
         since = datetime.now(timezone.utc) - timedelta(days=7)
         return self.session.exec(
             select(func.count(Event.id)).where(
