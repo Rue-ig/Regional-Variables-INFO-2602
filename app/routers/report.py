@@ -7,8 +7,7 @@ from app.models.report import Report, ReportReason, ReportStatus
 from app.models.review import Review
 from app.schemas.report import ReportCreate
 from datetime import datetime
-
-router = APIRouter(prefix="/reports", tags=["Reports"])
+from . import router, templates
 
 @router.post("/photo/{photo_id}")
 async def report_photo(
