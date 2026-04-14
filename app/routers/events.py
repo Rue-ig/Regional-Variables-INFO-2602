@@ -29,18 +29,14 @@ async def events_index(
     if user.role == "admin":
         return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
 
-    resolved_min = None
-    resolved_max = None
+    resolved_min = float(min_price) if min_price else None
+    resolved_max = float(max_price) if max_price else None
+
     if price_range == "free":
-        resolved_min = None
-        resolved_max = 0.0
+        resolved_min, resolved_max = None, 0.0
+        
     elif price_range == "paid":
         resolved_min = 0.01
-        resolved_max = float(max_price) if max_price else None
-        
-    else:
-        resolved_min = float(min_price) if min_price else None
-        resolved_max = float(max_price) if max_price else None
 
     filters = EventFilter(
         island=island or None,
@@ -83,11 +79,16 @@ async def events_map(request: Request, user: AuthDep, db: SessionDep):
         
     service = EventService(EventRepository(db))
     events = service.get_all_for_map()
+    
     events_json = json.dumps([
         {
-            "id": e.id, "title": e.title, "island": e.island.value,
-            "venue": e.venue, "date": e.date.isoformat(),
-            "price": e.price, "category": e.category.value,
+            "id": e.id, 
+            "title": e.title, 
+            "island": e.island.value,
+            "venue": e.venue, 
+            "date": e.date.isoformat(),
+            "price": e.price, 
+            "category": e.category.value,
         }
         
         for e in events
