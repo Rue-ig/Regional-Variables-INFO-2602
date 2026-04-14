@@ -10,6 +10,7 @@ class UserBase(SQLModel,):
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    avatar_url: Optional[str] = None
     
     reviews: list["Review"] = Relationship(back_populates="user")
     photos: list["Photo"] = Relationship(back_populates="user")
