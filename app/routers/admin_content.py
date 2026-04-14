@@ -1,8 +1,10 @@
 # PATH: app/routers/admin_content.py
-from fastapi import Request
+from fastapi import Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlmodel import select
 from app.dependencies.session import SessionDep
 from app.dependencies.auth import AdminDep
+from app.models.contact import ContactInquiry
 from app.repositories.content import ReviewRepository, PhotoRepository
 from app.repositories.event import EventRepository
 from app.services.content_service import ReviewService, PhotoService
@@ -102,3 +104,48 @@ async def delete_pending_event(
     flash(request, "Event deleted.", "info")
     
     return RedirectResponse(url="/admin/content", status_code=303)
+
+@router.get("/admin/contact", response_class=HTMLResponse)
+async def admin_contact_list(request: Request, db: SessionDep, user: AdminDep):
+    inquiries = db.exec(
+        select(ContactInquiry).order_by(ContactInquiry.created_at.desc())
+    ).all()
+    
+    return templates.TemplateResponse(
+        request, "Admin/contact.html",
+        {"request": request, "user": user, "inquiries": inquiries}
+    )
+
+@router.post("/admin/contact/{inquiry_id}/reply")
+async def admin_contact_reply(
+    request: Request,
+    inquiry_id: int,
+    db: SessionDep,
+    user: AdminDep,
+    reply_body: str = Form(...),
+):
+    from datetime import datetime
+    inquiry = db.get(ContactInquiry, inquiry_id)
+    if inquiry:
+        inquiry.replied = True
+        inquiry.reply_body = reply_body
+        inquiry.replied_at = datetime.utcnow()
+        db.add(inquiry)
+        db.commit()
+        flash(request, "Reply saved.", "success")
+        
+    return RedirectResponse(url="/admin/contact", status_code=303)
+
+@router.post("/admin/contact/{inquiry_id}/delete")
+async def admin_contact_delete(
+    request: Request,
+    inquiry_id: int,
+    db: SessionDep,
+    user: AdminDep,
+):
+    inquiry = db.get(ContactInquiry, inquiry_id)
+    if inquiry:
+        db.delete(inquiry)
+        db.commit()
+        
+    return RedirectResponse(url="/admin/contact", status_code=303)
