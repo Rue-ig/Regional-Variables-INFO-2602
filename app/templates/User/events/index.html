@@ -260,14 +260,8 @@
         {% if event.image_url %}
         <img src="{{ event.image_url }}" class="event-img" alt="{{ event.title }}">
         {% else %}
-<<<<<<< HEAD
-        <div class="event-img-placeholder">
-          <span class="event-icon">🎉</span>
-        </div>
-=======
         <img src="https://placehold.net/{{ event.random_num() }}.png" class="card-img-top"
             style="height:200px;object-fit:cover;" alt="{{ event.title }}">
->>>>>>> main
         {% endif %}
 
         <!-- 🔥 BODY -->
