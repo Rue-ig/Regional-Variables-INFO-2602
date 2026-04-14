@@ -1,6 +1,6 @@
 # PATH: app/routers/bookmarks.py
 from fastapi import Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.dependencies import SessionDep, AuthDep
 from app.models.event import Event
 from app.models.bookmark import Bookmark
@@ -8,6 +8,7 @@ from app.models.photo import Photo
 from app.models.review import Review
 from app.models.album import Album, AlbumEventLink
 from app.models.event_status import UserEventStatus
+from app.models.report import Report
 from sqlmodel import select
 from . import router, templates
 import random
@@ -28,7 +29,6 @@ async def bookmarks_page(request: Request, db: SessionDep, user: AuthDep):
     for r in user_reviews:
         r._event_title = r.event.title if r.event else "Unknown Event"
 
-
     return templates.TemplateResponse(
         request=request,
         name="User/events/bookmarks.html",
@@ -44,6 +44,7 @@ async def bookmarks_page(request: Request, db: SessionDep, user: AuthDep):
             "status_map": status_map,
         },
     )
+
 
 @router.post("/bookmarks/status/{event_id}")
 async def set_event_status(
@@ -66,7 +67,10 @@ async def set_event_status(
     else:
         db.add(UserEventStatus(user_id=user.id, event_id=event_id, status=status))
     db.commit()
-    return RedirectResponse(url="/bookmarks", status_code=303)
+
+    referer = request.headers.get("referer", "/bookmarks")
+    return RedirectResponse(url=referer, status_code=303)
+
 
 @router.post("/albums/create")
 async def create_album(
@@ -79,6 +83,11 @@ async def create_album(
     album = Album(name=name, description=description, user_id=user.id)
     db.add(album)
     db.commit()
+    db.refresh(album)
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JSONResponse({"album_id": album.id, "name": album.name})
+
     return RedirectResponse(url="/bookmarks", status_code=303)
 
 @router.post("/albums/{album_id}/add-event/{event_id}")
@@ -89,6 +98,10 @@ async def add_event_to_album(
     db: SessionDep,
     user: AuthDep,
 ):
+    album = db.get(Album, album_id)
+    if not album or album.user_id != user.id:
+        return JSONResponse({"detail": "Album not found"}, status_code=404)
+
     existing = db.exec(
         select(AlbumEventLink)
         .where(AlbumEventLink.album_id == album_id, AlbumEventLink.event_id == event_id)
@@ -96,4 +109,89 @@ async def add_event_to_album(
     if not existing:
         db.add(AlbumEventLink(album_id=album_id, event_id=event_id))
         db.commit()
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JSONResponse({"ok": True})
+
     return RedirectResponse(url="/bookmarks", status_code=303)
+
+@router.post("/albums/{album_id}/remove-event/{event_id}")
+async def remove_event_from_album(
+    request: Request,
+    album_id: int,
+    event_id: int,
+    db: SessionDep,
+    user: AuthDep,
+):
+    album = db.get(Album, album_id)
+    if not album or album.user_id != user.id:
+        return JSONResponse({"detail": "Album not found"}, status_code=404)
+
+    link = db.exec(
+        select(AlbumEventLink)
+        .where(AlbumEventLink.album_id == album_id, AlbumEventLink.event_id == event_id)
+    ).first()
+    if link:
+        db.delete(link)
+        db.commit()
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JSONResponse({"ok": True})
+
+    return RedirectResponse(url=f"/albums/{album_id}", status_code=303)
+
+@router.post("/albums/{album_id}/delete")
+async def delete_album(
+    request: Request,
+    album_id: int,
+    db: SessionDep,
+    user: AuthDep,
+):
+    album = db.get(Album, album_id)
+    if not album or album.user_id != user.id:
+        return JSONResponse({"detail": "Album not found"}, status_code=404)
+
+    links = db.exec(
+        select(AlbumEventLink).where(AlbumEventLink.album_id == album_id)
+    ).all()
+    for link in links:
+        db.delete(link)
+
+    db.delete(album)
+    db.commit()
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JSONResponse({"ok": True})
+
+    referer = request.headers.get("referer", "/bookmarks")
+    return RedirectResponse(url=referer, status_code=303)
+
+@router.post("/reports/{item_type}/{item_id}")
+async def submit_report(
+    request: Request,
+    item_type: str,
+    item_id: int,
+    db: SessionDep,
+    user: AuthDep,
+):
+    if item_type not in ("review", "photo", "event"):
+        return JSONResponse({"detail": "Invalid report type"}, status_code=400)
+
+    body = await request.json()
+    reason = body.get("reason", "").strip()
+    details = body.get("details", "").strip()
+
+    if not reason:
+        return JSONResponse({"detail": "Reason is required"}, status_code=422)
+
+    report = Report(
+        reporter_id=user.id,
+        item_type=item_type,
+        item_id=item_id,
+        reason=reason,
+        details=details,
+    )
+    db.add(report)
+    db.commit()
+
+    return JSONResponse({"ok": True})
