@@ -14,7 +14,7 @@
         left: 0;
         bottom: 0;
         width: var(--cb-sidebar-w);
-        background: linear-gradient(170deg, var(--cb-deep) 0%, var(--cb-ocean) 55%, #0a4a6e 100%);
+        background: linear-gradient(170deg, #042d24 0%, #053225 55%, #1e5631 100%);
         display: flex;
         flex-direction: column;
         z-index: 1040;
@@ -460,16 +460,11 @@
     </svg>
 
     <a class="sidebar-brand" href="/">
-        <div class="brand-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
-                <path d="M3 18 Q6 15 9 18 Q12 21 15 18 Q18 15 21 18" stroke="white" stroke-width="1.5" fill="none"
-                    stroke-linecap="round" />
-            </svg>
+        <div style="background-color: white; border-radius: 4px;">
+            <img src="{{ url_for('static', path='img/logo-no.png') }}" alt="Logo" style="width: 40px; height: 40px;">
         </div>
         <div class="brand-text">
-            <div class="brand-name">DWIVE</div>
+            <div class="brand-name">dwivé</div>
             <div class="brand-tagline">Discover the Islands</div>
         </div>
     </a>

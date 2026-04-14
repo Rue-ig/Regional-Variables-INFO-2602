@@ -52,8 +52,7 @@
         <div class="row g-0">
             <div class="col-lg-6 d-none d-lg-flex login-image">
                 <div class="text-center">
-                    <h2 class="mt-4 fw-bold">Registration</h2>
-                    <p class="lead">Create an account for the app</p>
+                    <img src="{{ url_for('static', path='img/logo.png') }}" style="width: 400px; height: 400px;">
                 </div>
             </div>
             <div class="col-lg-6 bg-white">
@@ -79,7 +78,8 @@
                         </div>
 
                         <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary btn-lg" 
+                            style="--bs-btn-bg: #fb5607; --bs-btn-border-color: #fb5607; --bs-btn-hover-bg: #fb5607; --bs-btn-hover-border-color: #fff;">
                                 Register
                             </button>
                         </div>
