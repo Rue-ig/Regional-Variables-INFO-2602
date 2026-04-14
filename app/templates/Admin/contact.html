@@ -1,73 +1,108 @@
 {# PATH: app/templates/Admin/contact.html #}
-{% extends "authenticated-base.html" %}
-{% block title %}Contact Inquiries – Admin{% endblock %}
-{% block subpage_content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4">Contact Inquiries</h1>
-    {% if inquiries %}
-    <div class="d-flex flex-column gap-3">
-        {% for inquiry in inquiries %}
-        <div class="card border-0 shadow-sm rounded-4 {{ 'opacity-75' if inquiry.replied }}">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="fw-bold mb-0">{{ inquiry.name }}
-                            <span class="text-muted fw-normal small ms-1">— {{ inquiry.email }}</span>
-                        </h6>
-                        <small class="text-muted">
-                            {{ inquiry.created_at.strftime('%d %b %Y, %I:%M %p') }} ·
-                            <span class="badge bg-secondary">{{ inquiry.subject }}</span>
+{% extends "admin.html" %}
+
+{% block admin_subcontent %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-bold">Contact Inquiries</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">User / Date</th>
+                        <th>Subject</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inquiry in inquiries %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">{{ inquiry.name }}</div>
+                            <small class="text-muted">{{ inquiry.email }}</small><br>
+                            <small class="text-muted">{{ inquiry.created_at.strftime('%d %b, %H:%M') }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ inquiry.subject | capitalize }}</span>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 250px;" title="{{ inquiry.message }}">
+                                {{ inquiry.message }}
+                            </div>
+                        </td>
+                        <td>
                             {% if inquiry.replied %}
-                            <span class="badge bg-success ms-1">Replied</span>
+                                <span class="badge bg-success-subtle text-success">Replied</span>
                             {% else %}
-                            <span class="badge bg-warning text-dark ms-1">Pending</span>
+                                <span class="badge bg-warning-subtle text-warning">Pending</span>
                             {% endif %}
-                        </small>
-                    </div>
-                    <form action="/admin/contact/{{ inquiry.id }}/delete" method="POST"
-                        onsubmit="return confirm('Delete this inquiry?')">
-                        <button class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#replyModal{{ inquiry.id }}">
+                                    <span class="material-symbols-outlined fs-6">reply</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ inquiry.id }}">
+                                    <span class="material-symbols-outlined fs-6">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
 
-                <div class="bg-light rounded-3 p-3 mb-3">
-                    <p class="mb-0 small" style="white-space: pre-wrap;">{{ inquiry.message }}</p>
-                </div>
-
-                {% if inquiry.replied and inquiry.reply_body %}
-                <div class="border-start border-success border-3 ps-3 mb-3">
-                    <small class="text-muted d-block mb-1">Your reply · {{ inquiry.replied_at.strftime('%d %b %Y') if
-                        inquiry.replied_at }}</small>
-                    <p class="mb-0 small" style="white-space: pre-wrap;">{{ inquiry.reply_body }}</p>
-                </div>
-                {% endif %}
-
-                {% if not inquiry.replied %}
-                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#reply-{{ inquiry.id }}">
-                    <span class="material-symbols-outlined fs-6 align-middle">reply</span> Reply
-                </button>
-                <div class="collapse mt-3" id="reply-{{ inquiry.id }}">
-                    <form action="/admin/contact/{{ inquiry.id }}/reply" method="POST">
-                        <textarea name="reply_body" class="form-control mb-2" rows="4"
-                            placeholder="Write your reply..."></textarea>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-sm btn-success">Send Reply</button>
-                            <button type="button" class="btn btn-sm btn-light" data-bs-toggle="collapse"
-                                data-bs-target="#reply-{{ inquiry.id }}">Cancel</button>
+                    <div class="modal fade" id="replyModal{{ inquiry.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form action="/admin/contact/{{ inquiry.id }}/reply" method="POST" class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reply to {{ inquiry.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3 bg-light p-3 rounded">
+                                        <small class="text-muted d-block mb-2">ORIGINAL MESSAGE:</small>
+                                        {{ inquiry.message }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Your Response</label>
+                                        <textarea name="reply_body" class="form-control" rows="5" required>{{ inquiry.reply_body or '' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save Reply</button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
+                    </div>
+
+                    <div class="modal fade" id="deleteModal{{ inquiry.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-sm">
+                            <form action="/admin/contact/{{ inquiry.id }}/delete" method="POST" class="modal-content">
+                                <div class="modal-body text-center py-4">
+                                    <span class="material-symbols-outlined display-4 text-danger mb-3">warning</span>
+                                    <h5>Delete Inquiry?</h5>
+                                    <p class="text-muted small">This action cannot be undone.</p>
+                                    <div class="d-flex gap-2 justify-content-center mt-4">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
+        {% if not inquiries %}
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined display-1 text-muted">mail_outline</span>
+            <p class="text-muted mt-2">No inquiries found.</p>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
-        <span class="material-symbols-outlined display-4 text-muted opacity-25">mail</span>
-        <p class="text-muted mt-2">No contact inquiries yet.</p>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
