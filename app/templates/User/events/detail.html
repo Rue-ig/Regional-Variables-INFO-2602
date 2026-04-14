@@ -942,32 +942,56 @@
     const reviewId = btn.dataset.reviewId;
     const vote = btn.dataset.vote;
     const card = document.getElementById(`review-${reviewId}`);
-    const upBtn = card.querySelector('.vote-btn.up');
-    const downBtn = card.querySelector('.vote-btn.down');
+
     const newVote = btn.classList.contains('active') ? 'none' : vote;
+
     const form = new FormData();
     form.append('vote', newVote);
-    const res = await fetch(`/reviews/${reviewId}/vote`, { method: 'POST', body: form });
-    if (!res.ok) return;
-    const data = await res.json();
-    card.querySelector('.up-count').textContent = data.upvotes;
-    card.querySelector('.down-count').textContent = data.downvotes;
-    upBtn.classList.remove('active');
-    downBtn.classList.remove('active');
-    if (newVote === 'up') upBtn.classList.add('active');
-    else if (newVote === 'down') downBtn.classList.add('active');
+
+    try {
+      const res = await fetch(`/reviews/${reviewId}/vote`, {
+        method: 'POST',
+        body: form
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        card.querySelector('.up-count').textContent = data.upvotes;
+        card.querySelector('.down-count').textContent = data.downvotes;
+
+        const upBtn = card.querySelector('.vote-btn.up');
+        const downBtn = card.querySelector('.vote-btn.down');
+
+        upBtn.classList.remove('active');
+        downBtn.classList.remove('active');
+
+        if (newVote === 'up')
+          upBtn.classList.add('active');
+
+        else if (newVote === 'down')
+          downBtn.classList.add('active');
+      }
+    }
+
+    catch (err) {
+      console.error("Vote failed:", err);
+    }
   }
 
   async function heartPhoto(btn, photoId) {
     const res = await fetch(`/photos/${photoId}/heart`, { method: 'POST' });
-    if (!res.ok) return;
+    if (!res.ok)
+      return;
     const data = await res.json();
     btn.querySelector('.heart-count').textContent = data.hearts;
     const icon = btn.querySelector('.material-symbols-outlined');
     if (data.hearted) {
       btn.classList.add('hearted');
       icon.style.fontVariationSettings = "'FILL' 1";
-    } else {
+    }
+
+    else {
       btn.classList.remove('hearted');
       icon.style.fontVariationSettings = "'FILL' 0";
     }
@@ -979,6 +1003,7 @@
     document.getElementById('lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
+
   function closeLightbox() {
     document.getElementById('lightbox').classList.remove('open');
     document.body.style.overflow = '';
@@ -997,18 +1022,38 @@
   document.getElementById('reportForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const formData = new FormData(this);
-    const res = await fetch(`/reports/${_reportItemType}/${_reportItemId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason: formData.get('reason'), details: formData.get('details') })
-    });
-    if (res.ok) {
-      bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
-      showToast(`${_reportItemType.charAt(0).toUpperCase() + _reportItemType.slice(1)} reported successfully!`);
-      this.reset();
-    } else {
-      const err = await res.json();
-      showToast(err.detail || 'Error submitting report', true);
+
+    const payload = {
+      reason: formData.get('reason'),
+      details: formData.get('details')
+    };
+
+    try {
+      const res = await fetch(`/reports/${_reportItemType}/${_reportItemId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const modalEl = document.getElementById('reportModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+        if (modalInstance)
+          modalInstance.hide();
+
+        showToast(`${_reportItemType.charAt(0).toUpperCase() + _reportItemType.slice(1)} reported successfully!`);
+        this.reset();
+      }
+
+      else {
+        const err = await res.json();
+        showToast(err.detail || 'Error submitting report', true);
+      }
+    }
+
+    catch (err) {
+      showToast('Server error. Please try again later.', true);
     }
   });
 
@@ -1024,7 +1069,8 @@
   }
 
   document.getElementById('albumModalBackdrop').addEventListener('click', function (e) {
-    if (e.target === this) closeAlbumModal();
+    if (e.target === this)
+      closeAlbumModal();
   });
 
   async function toggleAlbum(albumId, eventId, isChecked) {
@@ -1094,7 +1140,9 @@
         const err = await res.json();
         showToast(err.detail || 'Operation failed', true);
       }
-    } catch (err) {
+    }
+
+    catch (err) {
       console.error(err);
       showToast('Failed to update album', true);
     }
@@ -1115,7 +1163,11 @@
 
   async function createNewAlbum() {
     const name = document.getElementById('newAlbumName').value.trim();
-    if (!name) { showToast('Please enter an album name', true); return; }
+    if (!name) {
+      showToast('Please enter an album name', true);
+      return;
+    }
+
     const description = document.getElementById('newAlbumDesc').value.trim();
     const evtId = {{ event.id }};
 
@@ -1178,7 +1230,10 @@
   }
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeLightbox(); closeAlbumModal(); }
+    if (e.key === 'Escape') {
+      closeLightbox();
+      closeAlbumModal();
+    }
   });
 </script>
 <script>
