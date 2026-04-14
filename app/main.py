@@ -2,6 +2,7 @@
 import uvicorn
 import uuid
 from fastapi import FastAPI, Request, status
+from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from app.routers import templates, static_files, router, api_router
@@ -9,7 +10,7 @@ from app.config import get_settings
 from contextlib import asynccontextmanager
 from app.database import get_cli_session, create_db_and_tables 
 from app.models import Visit
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,7 +19,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.add_middleware(ProxyHeadersMiddleware)
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/home")
+
 
 async def log_visit(request: Request, call_next):
     exclusions = ("/static", "/api", "/robots.txt", "/favicon.ico", "/admin")
