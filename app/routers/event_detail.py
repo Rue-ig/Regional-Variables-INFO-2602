@@ -9,6 +9,7 @@ from app.services.content_service import ReviewService, PhotoService, BookmarkSe
 from app.models.album import Album, AlbumEventLink
 from app.models.event_status import UserEventStatus
 from app.models.review_vote import ReviewVote
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from . import router, templates
 
@@ -34,7 +35,12 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
         already_reviewed = (
             ReviewRepository(db).get_by_user_and_event(user.id, event_id) is not None
         )
-        user_albums = db.exec(select(Album).where(Album.user_id == user.id)).all()
+        
+        user_albums = db.exec(
+            select(Album)
+            .where(Album.user_id == user.id)
+            .options(selectinload(Album.events))
+        ).all()
 
         status_row = db.exec(
             select(UserEventStatus).where(
