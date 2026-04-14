@@ -8,3 +8,4 @@ from app.models.photo import Photo
 from app.models.bookmark import Bookmark
 from app.models.visitors import Visit
 from app.models.report import Report
+from app.models.contact import ContactInquiry
