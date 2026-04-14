@@ -1,8 +1,6 @@
 {# PATH: app/templates/pages/contact.html #}
 {% extends "authenticated-base.html" if user else "base.html" %}
-
 {% block title %}Contact – dwivé{% endblock %}
-
 {% block additional_styles %}
 <style>
   .static-page {
@@ -15,8 +13,6 @@
     border-radius: 18px;
     padding: 48px 40px 40px;
     margin-bottom: 28px;
-    position: relative;
-    overflow: hidden;
   }
 
   .static-hero h1 {
@@ -179,19 +175,17 @@
 </style>
 {% endblock %}
 
-{% macro body() %}
-<div class="static-page">
+{% set page_body %}
+<div class="static-page {% if not user %}pt-5 mt-4{% endif %}">
   <div class="static-hero">
     <div class="hero-icon"><span class="material-symbols-outlined">mail</span></div>
     <h1>Get in Touch</h1>
     <p>Questions, partnerships, or event submissions — we're here.</p>
   </div>
-
   <div class="row g-4">
     <div class="col-lg-7">
       <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">edit_note</span>Send us a message</h2>
-
         {% if submitted %}
         <div class="success-box mb-4">
           <span class="material-symbols-outlined">check_circle</span>
@@ -202,11 +196,13 @@
         <form method="post" action="/contact" class="d-flex flex-column gap-3">
           <div>
             <label class="form-label" for="c-name">Your name *</label>
-            <input id="c-name" name="name" type="text" class="form-control" required placeholder="e.g. Anya Baptiste">
+            <input id="c-name" name="name" type="text" class="form-control" required placeholder="e.g. Anya Baptiste"
+              value="{{ user.username if user else '' }}">
           </div>
           <div>
             <label class="form-label" for="c-email">Email address *</label>
-            <input id="c-email" name="email" type="email" class="form-control" required placeholder="you@example.com">
+            <input id="c-email" name="email" type="email" class="form-control" required placeholder="you@example.com"
+              value="{{ user.email if user else '' }}">
           </div>
           <div>
             <label class="form-label" for="c-subject">Subject</label>
@@ -221,7 +217,7 @@
           <div>
             <label class="form-label" for="c-msg">Message *</label>
             <textarea id="c-msg" name="message" class="form-control" required
-              placeholder="Tell us what's on your mind…"></textarea>
+              placeholder="Tell us what's on your mind..."></textarea>
           </div>
           <div>
             <button type="submit" class="btn-coral">Send message</button>
@@ -230,7 +226,6 @@
         {% endif %}
       </div>
     </div>
-
     <div class="col-lg-5">
       <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">contact_phone</span>Contact info</h2>
@@ -261,8 +256,7 @@
       <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">live_help</span>Quick links</h2>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;">
-          {% for label, url in [("Frequently Asked Questions", "/faq"), ("Submit an event", "/events"), ("Privacy
-          Policy", "/privacy"), ("Terms & Conditions", "/terms")] %}
+          {% for label, url in [("FAQ", "/faq"), ("Privacy Policy", "/privacy"), ("Terms & Conditions", "/terms")] %}
           <li>
             <a href="{{ url }}"
               style="display:flex;align-items:center;gap:8px;font-size:13px;color:#0e6e96;text-decoration:none;padding:7px 0;border-bottom:1px solid #f3f4f6;">
@@ -275,16 +269,7 @@
     </div>
   </div>
 </div>
-{% endmacro %}
+{% endset %}
 
-{% if user %}
-{% block subpage_content %}
-{{ body() }}
-{% endblock %}
-{% else %}
-{% block content %}
-<div class="container py-5 mt-5">
-  {{ body() }}
-</div>
-{% endblock %}
-{% endif %}
+{% block subpage_content %}{{ page_body }}{% endblock %}
+{% block content %}<div class="container">{{ page_body }}</div>{% endblock %}
