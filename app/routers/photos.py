@@ -1,10 +1,11 @@
 # PATH: app/routers/photos.py
 from fastapi import Request, Form, UploadFile, File
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from app.dependencies import SessionDep, AuthDep
 from app.repositories.content import PhotoRepository
 from app.services.content_service import PhotoService
 from app.utilities.flash import flash
+from app.models.photo import Photo
 from . import router
 import os
 
@@ -19,14 +20,16 @@ async def upload_photo(
 ):
     try:
         await PhotoService(PhotoRepository(db)).upload(
-            event_id=event_id, user_id=user.id, file=file, caption=caption or None
+            event_id=event_id,
+            user_id=user.id,
+            file=file,
+            caption=caption or None,
         )
-        
-        flash(request, "Photo uploaded and awaiting approval.", "success")
+        flash(request, "Photo uploaded!", "success")
         
     except Exception as e:
         flash(request, str(e), "error")
-        
+
     return RedirectResponse(url=f"/events/{event_id}", status_code=303)
 
 @router.post("/photos/{photo_id}/delete")
@@ -34,30 +37,45 @@ async def delete_photo(
     request: Request,
     photo_id: int,
     db: SessionDep,
-    user: AuthDep
+    user: AuthDep,
 ):
     repo = PhotoRepository(db)
     photo = repo.get_by_id(photo_id)
-    
+
     if not photo:
         flash(request, "Photo not found.", "error")
+        
         return RedirectResponse(url="/admin/content", status_code=303)
 
     if user.role == "admin" or photo.user_id == user.id:
-        relative_path = photo.filepath.lstrip('/') 
-        
+        relative_path = photo.filepath.lstrip("/")
         repo.delete(photo)
-        
         try:
             if os.path.exists(relative_path):
                 os.remove(relative_path)
                 
         except Exception as e:
             print(f"File deletion error: {e}")
-
-        flash(request, "Photo and file permanently removed.", "success")
+        flash(request, "Photo removed.", "success")
         
     else:
         flash(request, "Unauthorized.", "error")
 
     return RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
+
+@router.post("/photos/{photo_id}/heart")
+async def heart_photo(
+    photo_id: int,
+    db: SessionDep,
+    user: AuthDep,
+):
+    photo = db.get(Photo, photo_id)
+    if not photo:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    photo.hearts = (photo.hearts or 0) + 1
+    db.add(photo)
+    db.commit()
+    db.refresh(photo)
+
+    return JSONResponse({"hearts": photo.hearts})
