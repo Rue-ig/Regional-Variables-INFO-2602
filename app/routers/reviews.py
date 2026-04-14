@@ -20,6 +20,7 @@ async def submit_review(
     try:
         ReviewService(ReviewRepository(db)).submit(event_id, user.id, rating, body)
         flash(request, "Review submitted!", "success")
+        
     except Exception as e:
         flash(request, str(e), "error")
 
@@ -37,15 +38,20 @@ async def delete_review(
 
     if not review:
         flash(request, "Review not found.", "error")
+        
         return RedirectResponse(url="/admin/content", status_code=303)
 
     if user.role == "admin" or review.user_id == user.id:
         repo.delete(review)
         flash(request, "Review removed.", "success")
+        
     else:
         flash(request, "Access denied.", "error")
 
     return RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
+
+from app.models.review_vote import ReviewVote
+from sqlmodel import select
 
 @router.post("/reviews/{review_id}/vote")
 async def vote_review(
@@ -54,18 +60,47 @@ async def vote_review(
     user: AuthDep,
     vote: str = Form(...),
 ):
+    if vote not in ("up", "down"):
+        return JSONResponse({"error": "Invalid vote"}, status_code=400)
+
     review = db.get(Review, review_id)
     if not review:
         return JSONResponse({"error": "Not found"}, status_code=404)
 
-    if vote == "up":
-        review.upvotes = (review.upvotes or 0) + 1
-        
-    elif vote == "down":
-        review.downvotes = (review.downvotes or 0) + 1
-        
+    existing_vote = db.exec(
+        select(ReviewVote)
+        .where(ReviewVote.user_id == user.id)
+        .where(ReviewVote.review_id == review_id)
+    ).first()
+
+    if existing_vote:
+        if existing_vote.vote == vote:
+            if vote == "up":
+                review.upvotes = max(0, review.upvotes - 1)
+                
+            else:
+                review.downvotes = max(0, review.downvotes - 1)
+                
+            db.delete(existing_vote)
+            
+        else:
+            if vote == "up":
+                review.upvotes = review.upvotes + 1
+                review.downvotes = max(0, review.downvotes - 1)
+                
+            else:
+                review.downvotes = review.downvotes + 1
+                review.upvotes = max(0, review.upvotes - 1)
+            existing_vote.vote = vote
+            db.add(existing_vote)
     else:
-        return JSONResponse({"error": "Invalid vote"}, status_code=400)
+        new_vote = ReviewVote(user_id=user.id, review_id=review_id, vote=vote)
+        db.add(new_vote)
+        if vote == "up":
+            review.upvotes += 1
+            
+        else:
+            review.downvotes += 1
 
     db.add(review)
     db.commit()
@@ -74,4 +109,5 @@ async def vote_review(
     return JSONResponse({
         "upvotes": review.upvotes,
         "downvotes": review.downvotes,
+        "user_vote": None if existing_vote and existing_vote.vote == vote else vote,
     })
