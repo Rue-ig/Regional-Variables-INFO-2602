@@ -10,7 +10,7 @@ from app.models.event import Island, EventCategory, EventStatus
 
 logger = logging.getLogger(__name__)
 
-DATE_FORMATS = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%d/%m/%Y %H:%M", "%d/%m/%Y", "%Y-%m-%d"]
+DATE_FORMATS = ["%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%d/%m/%Y %H:%M", "%d/%m/%Y", "%Y-%m-%d"]
 
 def _parse_date(raw: str) -> Optional[datetime]:
     for fmt in DATE_FORMATS:
