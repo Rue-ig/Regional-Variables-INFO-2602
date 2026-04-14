@@ -843,7 +843,7 @@
       </div>
 
       <div id="albumList">
-        {% for album in user_albums %}
+        {% for album in albums %}
           {% set in_album = event.id in album.events | map(attribute='id') | list %}
           
           <div class="album-row {% if in_album %}selected{% endif %}" 
