@@ -1,5 +1,5 @@
-from sqlmodel import SQLModel, Field
-from typing import Optional
+from sqlmodel import SQLModel, Field, Relationship
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -23,4 +23,11 @@ class Report(SQLModel, table=True):
     review_id: Optional[int] = Field(default=None, foreign_key="review.id", nullable=True)
     reason: ReportReason
     details: Optional[str] = None
+    status: ReportStatus = Field(default=ReportStatus.PENDING)
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    admin_notes: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+
+    photo: Optional["Photo"] = Relationship(back_populates="reports")
+    review: Optional["Review"] = Relationship(back_populates="reports")
+    user: Optional["User"] = Relationship()
