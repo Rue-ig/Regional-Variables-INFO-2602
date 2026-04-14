@@ -19,72 +19,59 @@ class EventRepository:
                 selectinload(Event.photos)
             )
         )
+        
         return self.session.exec(statement).first()
+
+    def _apply_filters(self, query, filters: Optional[EventFilter]):
+        if not filters:
+            return query
+            
+        if filters.island:
+            query = query.where(Event.island == filters.island)
+            
+        if filters.category:
+            query = query.where(Event.category == filters.category)
+            
+        if filters.date_from:
+            query = query.where(Event.date >= filters.date_from)
+            
+        if filters.date_to:
+            query = query.where(Event.date <= filters.date_to)
+            
+        if filters.min_price is not None:
+            query = query.where(Event.price >= filters.min_price)
+            
+        if filters.max_price is not None:
+            query = query.where(Event.price <= filters.max_price)
+        if filters.keyword:
+            kw = f"%{filters.keyword}%"
+            query = query.where(
+                Event.title.ilike(kw) | 
+                Event.description.ilike(kw) | 
+                Event.venue.ilike(kw)
+            )
+            
+        return query
 
     def get_all_published(self, filters: Optional[EventFilter] = None, offset: int = 0, limit: int = 20) -> list[Event]:
         query = select(Event).where(Event.status == EventStatus.published)
-        
-        if filters:
-            if filters.island:
-                query = query.where(Event.island == filters.island)
-                
-            if filters.category:
-                query = query.where(Event.category == filters.category)
-                
-            if filters.date_from:
-                query = query.where(Event.date >= filters.date_from)
-                
-            if filters.date_to:
-                query = query.where(Event.date <= filters.date_to)
-                
-            if filters.min_price is not None:
-                query = query.where(Event.price >= filters.min_price)
-                
-            if filters.max_price is not None:
-                query = query.where(Event.price <= filters.max_price)
-                
-            if filters.keyword:
-                kw = f"%{filters.keyword}%"
-                query = query.where(
-                    Event.title.ilike(kw) | Event.description.ilike(kw) | Event.venue.ilike(kw)
-                )
-                
+        query = self._apply_filters(query, filters)
         query = query.order_by(Event.date).offset(offset).limit(limit)
         
         return self.session.exec(query).all()
 
     def count_published(self, filters: Optional[EventFilter] = None) -> int:
         query = select(func.count(Event.id)).where(Event.status == EventStatus.published)
+        query = self._apply_filters(query, filters)
         
-        if filters:
-            if filters.island:
-                query = query.where(Event.island == filters.island)
-                
-            if filters.category:
-                query = query.where(Event.category == filters.category)
-                
-            if filters.date_from:
-                query = query.where(Event.date >= filters.date_from)
-                
-            if filters.date_to:
-                query = query.where(Event.date <= filters.date_to)
-                
-            if filters.keyword:
-                kw = f"%{filters.keyword}%"
-                query = query.where(
-                    Event.title.ilike(kw) | Event.description.ilike(kw)
-                )
-                
         return self.session.exec(query).one()
 
     def get_all_admin(self, offset: int = 0, limit: int = 50) -> list[Event]:
         query = select(Event).order_by(Event.created_at.desc()).offset(offset).limit(limit)
-        
         return self.session.exec(query).all()
 
     def get_pending(self) -> list[Event]:
         query = select(Event).where(Event.status == EventStatus.pending).order_by(Event.created_at.desc())
-        
         return self.session.exec(query).all()
 
     def create(self, data: EventCreate, user_id: Optional[int] = None) -> Event:
@@ -98,8 +85,7 @@ class EventRepository:
     def update(self, event: Event, data: EventUpdate) -> Event:
         for key, value in data.model_dump(exclude_unset=True).items():
             setattr(event, key, value)
-            
-        event.updated_at = datetime.utcnow()
+        event.updated_at = datetime.now(timezone.utc)
         self.session.add(event)
         self.session.commit()
         self.session.refresh(event)
@@ -112,7 +98,7 @@ class EventRepository:
 
     def set_status(self, event: Event, status: EventStatus) -> Event:
         event.status = status
-        event.updated_at = datetime.utcnow()
+        event.updated_at = datetime.now(timezone.utc)
         self.session.add(event)
         self.session.commit()
         self.session.refresh(event)
@@ -124,6 +110,7 @@ class EventRepository:
     
     def count_weekly_approved(self) -> int:
         since = datetime.now(timezone.utc) - timedelta(days=7)
+        
         return self.session.exec(
             select(func.count(Event.id)).where(
                 Event.status == EventStatus.published,
@@ -132,7 +119,6 @@ class EventRepository:
         ).one()
         
     def upsert_from_scrape(self, data: EventCreate) -> Event:
-        """Insert or skip duplicate (matched by title + date + island)."""
         existing = self.session.exec(
             select(Event).where(
                 Event.title == data.title,
@@ -140,7 +126,5 @@ class EventRepository:
                 Event.island == data.island,
             )
         ).first()
-        if existing:
-            return existing
         
-        return self.create(data)
+        return existing if existing else self.create(data)
