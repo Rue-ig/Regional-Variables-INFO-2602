@@ -1,6 +1,6 @@
 # PATH: app/routers/pages.py
 from fastapi import Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from app.dependencies.auth import UserDep
 from app.utilities.flash import flash
 from . import router, templates
