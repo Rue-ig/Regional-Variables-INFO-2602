@@ -211,5 +211,8 @@
 </div>
 {% endmacro %}
 
-{% block subpage_content %}{{ body() }}{% endblock %}
-{% block content %}{{ body() }}{% endblock %}
+{% if user %}
+    {% block subpage_content %}{{ body() }}{% endblock %}
+{% else %}
+    {% block content %}{{ body() }}{% endblock %}
+{% endif %}
