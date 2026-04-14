@@ -32,6 +32,7 @@ from . import (
     logout,
     events,
     event_detail,
+    report,
     reviews,
     pages,
     photos,

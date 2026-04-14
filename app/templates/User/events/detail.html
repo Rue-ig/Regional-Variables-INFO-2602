@@ -224,6 +224,9 @@
       {% if event.image_url %}
       <img src="{{ event.image_url }}" class="img-fluid rounded-4 mb-4 w-100 shadow-sm"
         style="max-height:400px;object-fit:cover;">
+      {% else %}
+        <img src="https://placehold.net/{{ event.random_num() }}.png" class="card-img-top"
+          style="height:200px;object-fit:cover;" alt="{{ event.title }}">
       {% endif %}
 
       <section class="mb-5">
@@ -247,6 +250,12 @@
               <span class="material-symbols-outlined"
                 style="font-size:14px;font-variation-settings:'FILL' 0;">favorite</span>
               <span class="heart-count">{{ photo.hearts or 0 }}</span>
+            </button>
+            <button class="report-btn" 
+              data-item-id="{{ review.id }}"
+              data-item-type="review"
+              data-item-title="Review by {{ review.user.username }}">
+              Report Review
             </button>
             {% if user and (user.id == photo.user_id or user.role == 'admin') %}
             <form action="/photos/{{ photo.id }}/delete" method="POST">
@@ -600,5 +609,16 @@
   }
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+  document.querySelectorAll('.report-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const itemId = this.dataset.itemId;
+    const itemType = this.dataset.itemType;
+    const form = document.getElementById('reportForm');
+    form.action = `/reports/${itemType}/${itemId}`;
+    document.querySelector('.modal-title').textContent = `Report ${itemType}`;
+  });
+
+});
 </script>
 {% endblock %}
