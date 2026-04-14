@@ -252,10 +252,10 @@
               <span class="heart-count">{{ photo.hearts or 0 }}</span>
             </button>
             <button class="report-btn" 
-              data-item-id="{{ review.id }}"
-              data-item-type="review"
-              data-item-title="Review by {{ review.user.username }}">
-              Report Review
+              data-item-id="{{ photo.id }}"
+              data-item-type="photo"
+              data-item-title="{{ photo.title }}">
+              Report Photo
             </button>
             {% if user and (user.id == photo.user_id or user.role == 'admin') %}
             <form action="/photos/{{ photo.id }}/delete" method="POST">
