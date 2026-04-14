@@ -4,6 +4,7 @@
 {% block title %}{{ event.title }} – Caribbean Events{% endblock %}
 {% block additional_styles %}
 <link rel="stylesheet" href="/static/css/events.css">
+<link rel="stylesheet" href="/static/css/modal.css">
 <style>
   .sticky-top {
     z-index: 10 !important;
@@ -207,6 +208,159 @@
     font-size: 13px;
     text-align: center;
     max-width: 60ch;
+  }
+
+  /* Modal styles for album picker */
+  .playlist-section {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .playlist-item:hover {
+    background-color: #f9fafb;
+  }
+
+  .playlist-checkbox {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .playlist-info {
+    flex: 1;
+  }
+
+  .playlist-name {
+    font-weight: 500;
+    color: #1f2937;
+  }
+
+  .playlist-count {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  .new-playlist-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .new-playlist-btn:hover {
+    background-color: #e5e7eb;
+  }
+
+  .new-playlist-icon {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .new-playlist-form {
+    display: none;
+    padding: 12px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .new-playlist-form input,
+  .new-playlist-form textarea {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .new-playlist-form textarea {
+    resize: vertical;
+  }
+
+  .form-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .form-buttons button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .btn-cancel {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+
+  .btn-cancel:hover {
+    background-color: #d1d5db;
+  }
+
+  .btn-create {
+    background-color: #10b981;
+    color: white;
+  }
+
+  .btn-create:hover {
+    background-color: #059669;
+  }
+
+  .btn-done {
+    padding: 8px 16px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .btn-done:hover {
+    background-color: #2563eb;
+  }
+
+  .success-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #2e2e2e;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
 </style>
 {% endblock %}
@@ -426,23 +580,8 @@
           </div>
 
           <hr class="opacity-25">
-          <p class="fw-bold small text-uppercase text-muted mb-2">Albums</p>
-          {% if user_albums %}
-          <form method="post" id="albumForm" class="d-flex gap-2 mb-2">
-            <select name="album_id" id="albumSelect" class="form-select form-select-sm rounded-pill">
-              {% for album in user_albums %}
-              <option value="{{ album.id }}">{{ album.name }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill"
-              onclick="document.getElementById('albumForm').action='/albums/' + document.getElementById('albumSelect').value + '/add-event/{{ event.id }}'">
-              <span class="material-symbols-outlined fs-6">add</span>
-            </button>
-          </form>
-          {% endif %}
-          <button class="btn btn-sm btn-outline-primary w-100 rounded-pill mt-1" data-bs-toggle="modal"
-            data-bs-target="#createAlbumModal">
-            <span class="material-symbols-outlined fs-6 align-middle">create_new_folder</span> New Album
+          <button onclick="openAddToAlbumModal()" class="btn btn-success w-100 mb-2">
+            <span class="material-symbols-outlined fs-6 align-middle">add_to_photos</span> Add to Album
           </button>
           {% endif %}
         </div>
@@ -451,6 +590,53 @@
   </div>
 </div>
 
+<!-- Album Modal -->
+<div id="addToAlbumModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Save to Album</h3>
+      <span class="close-modal" onclick="closeModal()">&times;</span>
+    </div>
+    
+    <div class="modal-body">
+      <div class="playlist-section" id="existingPlaylists">
+        {% for album in albums %}
+        <div class="playlist-item" data-album-id="{{ album.id }}" onclick="togglePlaylist(this)">
+          <input type="checkbox" class="playlist-checkbox" 
+                {% if album.id in albums_with_event %}checked{% endif %}
+                onchange="event.stopPropagation(); toggleAlbum({{ album.id }}, {{ event.id }}, this.checked)">
+          <div class="playlist-info">
+            <div class="playlist-name">{{ album.name }}</div>
+            <div class="playlist-count">{{ album.event_ids|length }} event{% if album.event_ids|length != 1 %}s{% endif %}</div>
+          </div>
+        </div>
+        {% else %}
+        <p style="padding: 20px; text-align: center; color: #606060;">No albums yet. Create one below!</p>
+        {% endfor %}
+      </div>
+      
+      <div class="new-playlist-btn" onclick="showNewAlbumForm()">
+        <span class="new-playlist-icon">➕</span>
+        <span>New album</span>
+      </div>
+      
+      <div class="new-playlist-form" id="newAlbumForm">
+        <input type="text" id="newAlbumName" placeholder="Album name" autocomplete="off">
+        <textarea id="newAlbumDesc" placeholder="Description (optional)" rows="2"></textarea>
+        <div class="form-buttons">
+          <button class="btn-cancel" onclick="hideNewAlbumForm()">Cancel</button>
+          <button class="btn-create" onclick="createNewAlbum()">Create</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-done" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -479,34 +665,6 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-danger">Submit Report</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="createAlbumModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold">Create New Album</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="post" action="/albums/create">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-uppercase">Album Name</label>
-            <input type="text" name="name" class="form-control rounded-3" placeholder="e.g. Carnival 2026" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-uppercase">Description (optional)</label>
-            <textarea name="description" class="form-control rounded-3" rows="2"
-              placeholder="What's this album about?"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary rounded-pill px-4">Create Album</button>
         </div>
       </form>
     </div>
@@ -660,6 +818,144 @@
       const error = await response.json();
       alert(error.detail || 'Error submitting report');
     }
+  });
+
+  // Album modal functions
+  const currentEventId = {{ event.id }};
+  
+  function openAddToAlbumModal() {
+      document.getElementById('addToAlbumModal').style.display = 'block';
+      hideNewAlbumForm();
+  }
+  
+  function closeModal() {
+      document.getElementById('addToAlbumModal').style.display = 'none';
+  }
+  
+  window.onclick = function(event) {
+      const modal = document.getElementById('addToAlbumModal');
+      if (event.target === modal) {
+          closeModal();
+      }
+  }
+  
+  function togglePlaylist(element) {
+      const checkbox = element.querySelector('.playlist-checkbox');
+      checkbox.checked = !checkbox.checked;
+      const changeEvent = new Event('change');
+      checkbox.dispatchEvent(changeEvent);
+  }
+  
+  async function toggleAlbum(albumId, eventId, isChecked) {
+      const url = isChecked ? `/albums/${albumId}/add_event` : `/albums/${albumId}/remove_event`;
+      
+      try {
+          const formData = new URLSearchParams();
+          formData.append('event_id', eventId);
+          
+          const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: formData.toString()
+          });
+          
+          if (response.ok) {
+              const message = isChecked ? 'Added to album' : 'Removed from album';
+              showToast(message);
+              updateEventCount(albumId, isChecked ? 1 : -1);
+          } else {
+              showToast('Something went wrong', true);
+              const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
+              if (checkbox) checkbox.checked = !isChecked;
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          showToast('Failed to update', true);
+
+          const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
+          if (checkbox) checkbox.checked = !isChecked;
+      }
+  }
+  
+  function updateEventCount(albumId, delta) {
+      const playlistItem = document.querySelector(`.playlist-item[data-album-id="${albumId}"]`);
+      if (!playlistItem) return;
+      
+      const countElement = playlistItem.querySelector('.playlist-count');
+      const match = countElement.textContent.match(/(\d+)/);
+      if (match) {
+          const newCount = parseInt(match[1]) + delta;
+          countElement.textContent = `${newCount} event${newCount !== 1 ? 's' : ''}`;
+      }
+  }
+  
+  function showNewAlbumForm() {
+      document.getElementById('newAlbumForm').style.display = 'block';
+      document.getElementById('newAlbumName').focus();
+  }
+  
+  function hideNewAlbumForm() {
+      document.getElementById('newAlbumForm').style.display = 'none';
+      document.getElementById('newAlbumName').value = '';
+      document.getElementById('newAlbumDesc').value = '';
+  }
+  
+  async function createNewAlbum() {
+      const name = document.getElementById('newAlbumName').value.trim();
+      if (!name) {
+          showToast('Please enter an album name', true);
+          return;
+      }
+      
+      const description = document.getElementById('newAlbumDesc').value.trim();
+      
+      try {
+          const formData = new URLSearchParams();
+          formData.append('name', name);
+          formData.append('description', description);
+          formData.append('event_id', currentEventId);
+          
+          const response = await fetch('/albums/create', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: formData.toString()
+          });
+          
+          if (response.ok) {
+              showToast(`Created "${name}"`);
+              setTimeout(() => window.location.reload(), 500);
+          } else {
+              showToast('Failed to create album', true);
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          showToast('Failed to create album', true);
+      }
+  }
+  
+  let toastTimeout;
+  function showToast(message, isError = false) {
+      const existingToast = document.querySelector('.success-toast');
+      if (existingToast) existingToast.remove();
+      if (toastTimeout) clearTimeout(toastTimeout);
+      
+      const toast = document.createElement('div');
+      toast.className = 'success-toast';
+      toast.style.background = isError ? '#e74c3c' : '#2e2e2e';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      toastTimeout = setTimeout(() => toast.remove(), 3000);
+  }
+  
+  document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+          closeModal();
+      }
   });
 </script>
 {% endblock %}
