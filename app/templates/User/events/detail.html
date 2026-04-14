@@ -347,49 +347,13 @@
                 class="btn btn-sm btn-outline-danger report-btn" 
                 data-bs-toggle="modal" 
                 data-bs-target="#reportModal"
-                data-item-id="{{ item_id }}"
-                data-item-type="{{ item_type }}"
-                data-item-title="{{ item_title }}">
+                data-item-id="{{ review.id }}"
+                data-item-type="review"
+                data-item-title="Review by {{ review.user.username if review.user else 'User' }}">
                 <span class="material-symbols-outlined" style="font-size:14px;">report</span>
                 Report
               </button>
-            </div>  
-
-            <div class="modal fade" id="reportModal" tabindex="-1">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Report {{ item_type }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <form id="reportForm" method="post">
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Reason *</label>
-                        <select name="reason" class="form-select" required>
-                          <option value="">Select a reason...</option>
-                          <option value="Spam">Spam or advertising</option>
-                          <option value="Inappropriate">Inappropriate content</option>
-                          <option value="Harassment">Harassment</option>
-                          <option value="Offensive">Offensive language</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Additional details (optional)</label>
-                        <textarea name="details" class="form-control" rows="3" 
-                                  placeholder="Please provide more context..."></textarea>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                      <button type="submit" class="btn btn-danger">Submit Report</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
             </div>
-
           </div>
         </div>
         {% endfor %}
@@ -418,7 +382,7 @@
         </div>
       </div>
       {% endif %}
-    </div>{# end col-lg-8 #}
+    </div>
 
     <div class="col-lg-4">
       <div class="card shadow-sm border-0 sticky-top" style="top:20px;">
@@ -483,6 +447,40 @@
           {% endif %}
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="reportModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Report Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="reportForm" method="post">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Reason *</label>
+            <select name="reason" class="form-select" required>
+              <option value="">Select a reason...</option>
+              <option value="Spam">Spam or advertising</option>
+              <option value="Inappropriate">Inappropriate content</option>
+              <option value="Harassment">Harassment</option>
+              <option value="Offensive">Offensive language</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Additional details (optional)</label>
+            <textarea name="details" class="form-control" rows="3" placeholder="Please provide more context..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Submit Report</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -610,15 +608,58 @@
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
+  let currentItemId = null;
+  let currentItemType = null;
+
   document.querySelectorAll('.report-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const itemId = this.dataset.itemId;
-    const itemType = this.dataset.itemType;
-    const form = document.getElementById('reportForm');
-    form.action = `/reports/${itemType}/${itemId}`;
-    document.querySelector('.modal-title').textContent = `Report ${itemType}`;
+    btn.addEventListener('click', function() {
+      currentItemId = this.dataset.itemId;
+      currentItemType = this.dataset.itemType;
+      const modalTitle = document.querySelector('#reportModal .modal-title');
+      modalTitle.textContent = `Report ${currentItemType}`;
+    });
   });
 
-});
+  document.getElementById('reportForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+      reason: formData.get('reason'),
+      details: formData.get('details')
+    };
+    
+    const response = await fetch(`/reports/${currentItemType}/${currentItemId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (response.ok) {
+      const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+      modal.hide();
+      
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-success alert-dismissible fade show';
+      alertDiv.role = 'alert';
+      alertDiv.innerHTML = `
+        ${currentItemType.charAt(0).toUpperCase() + currentItemType.slice(1)} reported successfully! Our team will review it.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', alertDiv.outerHTML);
+      
+      this.reset();
+      
+      setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) alert.remove();
+      }, 5000);
+    } else {
+      const error = await response.json();
+      alert(error.detail || 'Error submitting report');
+    }
+  });
 </script>
 {% endblock %}

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Form
 from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from typing import Optional
@@ -18,12 +18,10 @@ async def report_photo(
     details: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
-    """Report a photo"""
     user = request.session.get("user")
     if not user:
         raise HTTPException(status_code=401, detail="Must be logged in")
     
-    # Check if already reported
     existing = session.exec(
         select(Report).where(
             Report.photo_id == photo_id,
@@ -54,21 +52,17 @@ async def report_review(
     details: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
-    """Report a review"""
     user = request.session.get("user")
     if not user:
         raise HTTPException(status_code=401, detail="Must be logged in")
     
-    # Check if review exists
     review = session.get(Review, review_id)
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
     
-    # Don't allow reporting your own review
     if review.user_id == user["id"]:
         raise HTTPException(status_code=400, detail="Cannot report your own review")
     
-    # Check if already reported
     existing = session.exec(
         select(Report).where(
             Report.review_id == review_id,
@@ -91,12 +85,64 @@ async def report_review(
     
     return {"message": "Review reported successfully", "report_id": report.id}
 
+@router.post("/review/{review_id}/form")
+async def report_review_form(
+    request: Request,
+    review_id: int,
+    reason: ReportReason = Form(...),
+    details: Optional[str] = Form(None),
+    session: Session = Depends(get_session)
+):
+    user = request.session.get("user")
+    if not user:
+        return RedirectResponse(url="/login?error=Please login to report", status_code=303)
+    
+    review = session.get(Review, review_id)
+    if not review:
+        return RedirectResponse(
+            url=f"/events?error=Review not found", 
+            status_code=303
+        )
+    
+    if review.user_id == user["id"]:
+        return RedirectResponse(
+            url=f"/events/{review.event_id}?error=You cannot report your own review", 
+            status_code=303
+        )
+    
+    existing = session.exec(
+        select(Report).where(
+            Report.review_id == review_id,
+            Report.user_id == user["id"]
+        )
+    ).first()
+    
+    if existing:
+        return RedirectResponse(
+            url=f"/events/{review.event_id}?error=You have already reported this review", 
+            status_code=303
+        )
+    
+    report = Report(
+        user_id=user["id"],
+        review_id=review_id,
+        reason=reason,
+        details=details
+    )
+    
+    session.add(report)
+    session.commit()
+    
+    return RedirectResponse(
+        url=f"/events/{review.event_id}?message=Review+reported+successfully", 
+        status_code=303
+    )
+
 @router.get("/my-reports")
 async def get_my_reports(
     request: Request,
     session: Session = Depends(get_session)
 ):
-    """Get all reports made by current user"""
     user = request.session.get("user")
     if not user:
         raise HTTPException(status_code=401, detail="Not logged in")
@@ -107,13 +153,11 @@ async def get_my_reports(
     
     return {"reports": reports}
 
-# Admin endpoints
 @router.get("/admin/pending")
 async def get_pending_reports(
     request: Request,
     session: Session = Depends(get_session)
 ):
-    """Admin: Get all pending reports"""
     user = request.session.get("user")
     if not user or not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -132,7 +176,6 @@ async def review_report(
     admin_notes: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
-    """Admin: Review and update report status"""
     user = request.session.get("user")
     if not user or not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="Admin access required")
