@@ -318,29 +318,33 @@
               </small>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
-              <button
-                class="vote-btn up {% if user_review_votes and user_review_votes.get(review.id) == 'up' %}active{% endif %}"
-                data-review-id="{{ review.id }}" data-vote="up" onclick="voteReview(this)">
-                <span class="material-symbols-outlined" style="font-size:14px;">thumb_up</span>
-                <span class="up-count">{{ review.upvotes or 0 }}</span>
+            <div style = "justify-content: space-between;">
+              <div class="d-flex align-items-center gap-2">
+                <button
+                  class="vote-btn up {% if user_review_votes and user_review_votes.get(review.id) == 'up' %}active{% endif %}"
+                  data-review-id="{{ review.id }}" data-vote="up" onclick="voteReview(this)">
+                  <span class="material-symbols-outlined" style="font-size:14px;">thumb_up</span>
+                  <span class="up-count">{{ review.upvotes or 0 }}</span>
+                </button>
+                <button
+                  class="vote-btn down {% if user_review_votes and user_review_votes.get(review.id) == 'down' %}active{% endif %}"
+                  data-review-id="{{ review.id }}" data-vote="down" onclick="voteReview(this)">
+                  <span class="material-symbols-outlined" style="font-size:14px;">thumb_down</span>
+                  <span class="down-count">{{ review.downvotes or 0 }}</span>
               </button>
-              <button
-                class="vote-btn down {% if user_review_votes and user_review_votes.get(review.id) == 'down' %}active{% endif %}"
-                data-review-id="{{ review.id }}" data-vote="down" onclick="voteReview(this)">
-                <span class="material-symbols-outlined" style="font-size:14px;">thumb_down</span>
-                <span class="down-count">{{ review.downvotes or 0 }}</span>
-              </button>
-              <button type="button" 
-                class="btn btn-sm btn-outline-danger report-btn" 
-                data-bs-toggle="modal" 
-                data-bs-target="#reportModal"
-                data-item-id="{{ item_id }}"
-                data-item-type="{{ item_type }}"
-                data-item-title="{{ item_title }}">
-                <span class="material-symbols-outlined" style="font-size:14px;">report</span>
-                Report
-            </button>
+              </div>
+              <div>
+                <button type="button" 
+                  class="btn btn-sm btn-outline-danger report-btn" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#reportModal"
+                  data-item-id="{{ item_id }}"
+                  data-item-type="{{ item_type }}"
+                  data-item-title="{{ item_title }}">
+                  <span class="material-symbols-outlined" style="font-size:14px;">report</span>
+                  Report
+                </button>
+              </div>
             </div>
           </div>
         </div>
