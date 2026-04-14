@@ -1,6 +1,6 @@
 # PATH: app/models/review.py
 from sqlmodel import Field, SQLModel, Relationship
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class ReviewBase(SQLModel):
@@ -18,3 +18,12 @@ class Review(ReviewBase, table=True):
 
     event: "Event" = Relationship(back_populates="reviews")
     user: "User" = Relationship(back_populates="reviews")
+    
+    reports: List["Report"] = Relationship(
+        back_populates="review", 
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+
+    @property
+    def content(self) -> str:
+        return self.body

@@ -32,7 +32,6 @@ from . import (
     logout,
     events,
     event_detail,
-    report,
     reviews,
     pages,
     photos,
@@ -42,4 +41,6 @@ from . import (
     admin_events,
     admin_content,
     admin_import,
+    admin_moderation,
+    submissions
 )
