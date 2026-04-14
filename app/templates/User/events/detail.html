@@ -842,34 +842,44 @@
         New album
       </div>
 
-      <div class="album-list" id="albumList">
+      <div id="albumList">
         {% for album in user_albums %}
-        {% set in_album = album.id in albums_with_event %}
-        <div class="album-row {% if in_album %}selected{% endif %}" data-album-id="{{ album.id }}"
-          data-event-id="{{ event.id }}" data-in-album="{{ 'true' if in_album else 'false' }}"
-          onclick="handleAlbumRowClick(this)">
-          <div class="album-row-icon">
-            <span class="material-symbols-outlined">photo_album</span>
-          </div>
-          <div class="album-row-info">
-            <div class="album-row-name">{{ album.name }}</div>
-            <div class="album-row-count" data-album-id="{{ album.id }}">
-              {{ album.events|length }} event{% if album.events|length != 1 %}s{% endif %}
+          {% set in_album = event.id in album.events | map(attribute='id') | list %}
+          
+          <div class="album-row {% if in_album %}selected{% endif %}" 
+              data-album-id="{{ album.id }}"
+              data-event-id="{{ event.id }}" 
+              data-in-album="{{ 'true' if in_album else 'false' }}"
+              onclick="handleAlbumRowClick(this)">
+            
+            <div class="album-row-icon">
+              <span class="material-symbols-outlined">photo_album</span>
+            </div>
+
+            <div class="album-row-info">
+              <div class="album-row-name">{{ album.name }}</div>
+              <div class="album-row-count">
+                {{ album.events|length }} event{{ 's' if album.events|length != 1 else '' }}
+              </div>
+            </div>
+
+            <form action="/albums/{{ album.id }}/delete" method="POST" 
+                  onsubmit="return confirm('Delete this album?');" 
+                  onclick="event.stopPropagation();"
+                  class="ms-auto me-2">
+              <button type="submit" class="btn btn-link text-danger p-0 border-0">
+                <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+              </button>
+            </form>
+
+            <div class="album-row-check">
+              <span class="material-symbols-outlined">check_circle</span>
             </div>
           </div>
-          <form action="/albums/{{ album.id }}/delete" method="POST" onsubmit="return confirm('Delete this album?');"
-            onclick="event.stopPropagation();" class="ms-auto me-2">
-            <button type="submit" class="btn btn-link text-danger p-0 border-0">
-              <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-            </button>
-          </form>
-          <div class="album-row-check"></div>
-        </div>
         {% else %}
-        <div class="album-empty-state">
-          <span class="material-symbols-outlined">photo_album</span>
-          No albums yet — create one above!
-        </div>
+          <div class="text-center p-4 text-muted">
+            <p>No albums created yet.</p>
+          </div>
         {% endfor %}
       </div>
     </div>
