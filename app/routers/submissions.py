@@ -2,7 +2,7 @@
 from fastapi import Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.dependencies import SessionDep, AuthDep
-from app.models.event import Event, IslandEnum, CategoryEnum
+from app.models.event import Event, Island, EventCategory
 from sqlmodel import select
 from . import router, templates
 
