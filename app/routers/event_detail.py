@@ -6,16 +6,13 @@ from app.repositories.event import EventRepository
 from app.repositories.content import ReviewRepository, PhotoRepository, BookmarkRepository
 from app.services.event_service import EventService
 from app.services.content_service import ReviewService, PhotoService, BookmarkService
+from app.models.album import Album, AlbumEventLink
+from app.models.event_status import UserEventStatus
+from sqlmodel import select
 from . import router, templates
 
-
 @router.get("/events/{event_id}", response_class=HTMLResponse)
-async def event_detail(
-    request: Request,
-    event_id: int,
-    db: SessionDep,
-    user: UserDep
-):
+async def event_detail(request: Request, event_id: int, db: SessionDep, user: UserDep):
     event = EventService(EventRepository(db)).get_published_or_404(event_id)
     review_svc = ReviewService(ReviewRepository(db))
     photo_svc = PhotoService(PhotoRepository(db))
@@ -27,10 +24,20 @@ async def event_detail(
 
     is_bookmarked = False
     already_reviewed = False
-    
+    user_albums = []
+    user_status = None
+
     if user:
         is_bookmarked = event_id in bookmark_svc.get_bookmarked_ids(user.id)
         already_reviewed = ReviewRepository(db).get_by_user_and_event(user.id, event_id) is not None
+        user_albums = db.exec(select(Album).where(Album.user_id == user.id)).all()
+        status_row = db.exec(
+            select(UserEventStatus).where(
+                UserEventStatus.user_id == user.id,
+                UserEventStatus.event_id == event_id
+            )
+        ).first()
+        user_status = status_row.status if status_row else None
 
     return templates.TemplateResponse(
         request=request,
@@ -43,5 +50,7 @@ async def event_detail(
             "is_bookmarked": is_bookmarked,
             "already_reviewed": already_reviewed,
             "user": user,
+            "user_albums": user_albums,
+            "user_status": user_status,
         },
     )
