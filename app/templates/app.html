@@ -1,3 +1,4 @@
+{# PATH: app/templates/app.html #}
 {% extends "authenticated-base.html" %}
 
 {% block subpage_content %}
@@ -5,9 +6,7 @@
     {% if request.query_params.get('msg') %}
         {% set is_error = 'Error' in request.query_params.get('msg') %}
         <div class="alert {{ 'alert-danger' if is_error else 'alert-success' }} alert-dismissible fade show border-0 shadow-sm mb-4 d-flex align-items-center" role="alert">
-            <span class="material-symbols-outlined me-2">
-                {{ 'error' if is_error else 'check_circle' }}
-            </span>
+            <span class="material-symbols-outlined me-2">{{ 'error' if is_error else 'check_circle' }}</span>
             <div>{{ request.query_params.get('msg') }}</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -21,13 +20,25 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-4">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 64px; height: 64px;">
-                            <img src="{{ profile_pic }}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
+                        <div class="position-relative">
+                            {% if user.avatar_url %}
+                            <img src="{{ user.avatar_url }}" alt = "static/img/profile_pic.jpg" class="rounded-circle border shadow-sm"
+                                style="width:64px;height:64px;object-fit:cover;" alt="{{ user.username }}">
+                            {% else %}
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                style="width:64px;height:64px;">
+                                <span class="material-symbols-outlined" style="font-size:32px;">person</span>
+                            </div>
+                            {% endif %}
+                            <button class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-0"
+                                style="width:22px;height:22px;" data-bs-toggle="modal"
+                                data-bs-target="#editProfileModal" title="Change photo">
+                                <span class="material-symbols-outlined" style="font-size:14px;">edit</span>
+                            </button>
                         </div>
                         <div class="ms-3">
                             <h4 class="mb-0">{{ user.username }}</h4>
-                            <p class="text-muted mb-0">Member since {{ user.created_at.strftime('%B %Y') if user.created_at else '2026' }}</p>
+                            <p class="text-muted mb-0 small">Member since {{ user.created_at.strftime('%B %Y') if user.created_at else '2026' }}</p>
                         </div>
                     </div>
 
@@ -42,7 +53,8 @@
                         <div class="col-sm-4 text-muted">Email Address</div>
                         <div class="col-sm-6 fw-semibold">{{ user.email }}</div>
                         <div class="col-sm-2 text-end">
-                            <button class="btn btn-sm btn-link p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#editEmailModal">Change</button>
+                            <button class="btn btn-sm btn-link p-0 text-decoration-none"
+                                data-bs-toggle="modal" data-bs-target="#editEmailModal">Change</button>
                         </div>
                     </div>
 
@@ -63,7 +75,6 @@
     </div>
 </div>
 
-{# Replace the Update Profile Modal in your settings template #}
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form action="/app/edit-profile" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow">
@@ -72,18 +83,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-3 text-center">
-                    <label class="form-label d-block text-muted small fw-bold">PROFILE PICTURE</label>
+                <div class="mb-4 text-center">
+                    <label class="form-label d-block text-muted small fw-bold mb-3">PROFILE PICTURE</label>
                     <input type="file" name="profile_pic" id="profile_pic" class="d-none" accept="image/*" onchange="previewImage(this)">
                     <div class="position-relative d-inline-block">
-                        <img id="avatar-preview" src="{{ user.profile_pic_url or '/static/img/default-avatar.png' }}" 
-                             class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
-                        <button type="button" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle" 
+                        <img id="avatar-preview" src="{{ user.avatar_url or '/static/img/default-avatar.png' }}" 
+                             class="rounded-circle border shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                        <button type="button" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center" 
+                                style="width:32px; height:32px;"
                                 onclick="document.getElementById('profile_pic').click()">
                             <span class="material-symbols-outlined fs-6">photo_camera</span>
                         </button>
                     </div>
+                    <div class="form-text mt-2">JPG, PNG or WebP · Max 2MB</div>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-bold">USERNAME</label>
                     <input type="text" name="username" class="form-control form-control-lg" value="{{ user.username }}" required>
@@ -129,7 +143,7 @@
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-bold">NEW PASSWORD</label>
                     <input type="password" name="new_password" class="form-control form-control-lg" required minlength="8">
-                    <div class="form-text mt-2 text-muted">Choose a secure password at least 8 characters long.</div>
+                    <div class="form-text mt-2 text-muted small">Choose a secure password at least 8 characters long.</div>
                 </div>
             </div>
             <div class="modal-footer border-top-0">
