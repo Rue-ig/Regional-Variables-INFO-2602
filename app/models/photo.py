@@ -1,6 +1,6 @@
 # PATH: app/models/photo.py
 from sqlmodel import Field, SQLModel, Relationship
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class PhotoBase(SQLModel):
@@ -17,3 +17,12 @@ class Photo(PhotoBase, table=True):
 
     user: "User" = Relationship(back_populates="photos")
     event: "Event" = Relationship(back_populates="photos")
+    
+    reports: List["Report"] = Relationship(
+        back_populates="photo", 
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+
+    @property
+    def url(self) -> str:
+        return f"/static/uploads/{self.filepath}"
