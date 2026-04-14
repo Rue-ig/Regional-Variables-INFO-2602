@@ -118,7 +118,20 @@ class EventRepository:
         self.session.refresh(event)
         
         return event
-
+        
+    def count_all(self) -> int:
+        return self.session.exec(select(func.count(Event.id))).one()
+    
+    def count_weekly_approved(self) -> int:
+        from datetime import timedelta, timezone
+        since = datetime.now(timezone.utc) - timedelta(days=7)
+        return self.session.exec(
+            select(func.count(Event.id)).where(
+                Event.status == EventStatus.published,
+                Event.updated_at >= since
+            )
+        ).one()
+        
     def upsert_from_scrape(self, data: EventCreate) -> Event:
         """Insert or skip duplicate (matched by title + date + island)."""
         existing = self.session.exec(
