@@ -4,21 +4,120 @@
 
 {% block additional_styles %}
 <style>
-  .static-page{max-width:820px;margin:0 auto;}
-  .static-hero{background:linear-gradient(135deg,#0d1f35 0%,#0a3a5c 60%,#0a4a6e 100%);border-radius:18px;padding:48px 40px 40px;margin-bottom:28px;position:relative;overflow:hidden;}
-  .static-hero h1{color:#fff;font-size:2rem;font-weight:800;margin:0 0 8px;}
-  .static-hero p{color:rgba(255,255,255,.65);margin:0;font-size:15px;}
-  .hero-icon{width:52px;height:52px;border-radius:14px;margin-bottom:18px;background:rgba(255,107,53,.15);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,107,53,.35);}
-  .hero-icon .material-symbols-outlined{font-size:28px;color:#ff6b35;}
-  .static-card{background:#fff;border-radius:16px;border:1px solid #eef0f3;padding:32px;margin-bottom:20px;}
-  .static-card h2{font-size:1.05rem;font-weight:700;color:#0d1f35;display:flex;align-items:center;gap:9px;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;}
-  .static-card h2 .material-symbols-outlined{font-size:20px;color:#ff6b35;}
-  .faq-item{border-bottom:1px solid #f3f4f6;padding:16px 0;}
-  .faq-item:last-child{border:none;padding-bottom:0;}
-  .faq-q{font-size:14px;font-weight:600;color:#0d1f35;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;}
-  .faq-q .q-badge{width:22px;height:22px;border-radius:6px;background:#ff6b35;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-  .faq-a{font-size:13px;color:#6b7280;line-height:1.75;padding-left:32px;}
-  .faq-a a{color:#0e6e96;}
+  .static-page {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .static-hero {
+    background: linear-gradient(135deg, #0d1f35 0%, #0a3a5c 60%, #0a4a6e 100%);
+    border-radius: 18px;
+    padding: 48px 40px 40px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .static-hero h1 {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+  }
+
+  .static-hero p {
+    color: rgba(255, 255, 255, .65);
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    background: rgba(255, 107, 53, .15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 107, 53, .35);
+  }
+
+  .hero-icon .material-symbols-outlined {
+    font-size: 28px;
+    color: #ff6b35;
+  }
+
+  .static-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eef0f3;
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+
+  .static-card h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0d1f35;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .static-card h2 .material-symbols-outlined {
+    font-size: 20px;
+    color: #ff6b35;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid #f3f4f6;
+    padding: 16px 0;
+  }
+
+  .faq-item:last-child {
+    border: none;
+    padding-bottom: 0;
+  }
+
+  .faq-q {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0d1f35;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .faq-q .q-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #ff6b35;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .faq-a {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.75;
+    padding-left: 32px;
+  }
+
+  .faq-a a {
+    color: #0e6e96;
+  }
 </style>
 {% endblock %}
 
@@ -33,10 +132,16 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">manage_search</span>Using the platform</h2>
     {% for q, a in [
-      ("How do I find events near me?", "Use the island filter on the Browse Events page. Select your island from the dropdown, and all events in that territory will appear. You can further narrow results by category, date range, or keyword."),
-      ("Are all events free to attend?", "No — some events have ticket prices and some are free. Use the Price filter on the browse page and select \"Free\" to see only no-cost events."),
-      ("How up-to-date is the information?", "Our scrapers refresh event data every 12 hours from multiple ticketing sources. For time-sensitive information like last-minute cancellations, always verify with the official organiser before attending."),
-      ("Can I filter by multiple islands at once?", "Not yet — the current filter supports one island at a time. Multi-island filtering is on our roadmap."),
+    ("How do I find events near me?", "Use the island filter on the Browse Events page. Select your island from the
+    dropdown, and all events in that territory will appear. You can further narrow results by category, date range, or
+    keyword."),
+    ("Are all events free to attend?", "No — some events have ticket prices and some are free. Use the Price filter on
+    the browse page and select \"Free\" to see only no-cost events."),
+    ("How up-to-date is the information?", "Our scrapers refresh event data every 12 hours from multiple ticketing
+    sources. For time-sensitive information like last-minute cancellations, always verify with the official organiser
+    before attending."),
+    ("Can I filter by multiple islands at once?", "Not yet — the current filter supports one island at a time.
+    Multi-island filtering is on our roadmap."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -48,9 +153,12 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">account_circle</span>Accounts & profiles</h2>
     {% for q, a in [
-      ("Do I need an account to browse events?", "No — the events listing and map are publicly accessible. You only need an account to save bookmarks, leave reviews, or upload photos."),
-      ("How do I change my username or email?", "Log in and go to My Profile (/app). You can update your username and email from there. Usernames must be unique across the platform."),
-      ("I forgot my password. What do I do?", "Password reset by email is coming soon. In the meantime, contact us at hello@dwive.tt and we'll assist you manually."),
+    ("Do I need an account to browse events?", "No — the events listing and map are publicly accessible. You only need
+    an account to save bookmarks, leave reviews, or upload photos."),
+    ("How do I change my username or email?", "Log in and go to My Profile (/app). You can update your username and
+    email from there. Usernames must be unique across the platform."),
+    ("I forgot my password. What do I do?", "Password reset by email is coming soon. In the meantime, contact us at
+    hello@dwive.tt and we'll assist you manually."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -62,9 +170,12 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">add_circle</span>Submitting & editing events</h2>
     {% for q, a in [
-      ("How do I submit an event?", "Register for an account, then use the Submit Event form. Your submission goes to our admin team for review before it goes live — usually within 24 hours."),
-      ("How do I edit my event after submitting?", "Contact us at hello@dwive.tt with the event title and the changes you need. Self-serve editing for promoters is on the roadmap."),
-      ("Why was my event rejected?", "Events may be rejected if the date has already passed, information is incomplete, or the event is outside our coverage area. You'll receive a message explaining the reason."),
+    ("How do I submit an event?", "Register for an account, then use the Submit Event form. Your submission goes to our
+    admin team for review before it goes live — usually within 24 hours."),
+    ("How do I edit my event after submitting?", "Contact us at hello@dwive.tt with the event title and the changes you
+    need. Self-serve editing for promoters is on the roadmap."),
+    ("Why was my event rejected?", "Events may be rejected if the date has already passed, information is incomplete, or
+    the event is outside our coverage area. You'll receive a message explaining the reason."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -76,9 +187,12 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">shield</span>Privacy & data</h2>
     {% for q, a in [
-      ("What data do you collect?", "We collect your email, username, and hashed password for authentication. We also store any reviews, photos, or bookmarks you create. See our Privacy Policy for full details."),
-      ("Can I delete my account?", "Yes — email hello@dwive.tt and we will delete your account and associated data within 5 business days."),
-      ("Do you sell my data?", "Never. DWIVE does not sell or share personal data with third parties. See our Privacy Policy for the full breakdown."),
+    ("What data do you collect?", "We collect your email, username, and hashed password for authentication. We also
+    store any reviews, photos, or bookmarks you create. See our Privacy Policy for full details."),
+    ("Can I delete my account?", "Yes — email hello@dwive.tt and we will delete your account and associated data within
+    5 business days."),
+    ("Do you sell my data?", "Never. DWIVE does not sell or share personal data with third parties. See our Privacy
+    Policy for the full breakdown."),
     ] %}
     <div class="faq-item">
       <div class="faq-q"><span class="q-badge">Q</span>{{ q }}</div>
@@ -90,7 +204,8 @@
   <div class="static-card">
     <h2><span class="material-symbols-outlined">contact_support</span>Still have questions?</h2>
     <p style="font-size:14px;color:#4b5563;line-height:1.75">
-      Can't find what you're looking for? Reach us on the <a href="/contact" style="color:#0e6e96">contact page</a> or email <a href="mailto:hello@dwive.tt" style="color:#0e6e96">hello@dwive.tt</a>.
+      Can't find what you're looking for? Reach us on the <a href="/contact" style="color:#0e6e96">contact page</a> or
+      email <a href="mailto:hello@dwive.tt" style="color:#0e6e96">hello@dwive.tt</a>.
     </p>
   </div>
 </div>
