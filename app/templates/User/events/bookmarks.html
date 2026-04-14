@@ -54,7 +54,7 @@
       <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="position-relative">
           <img src="{{ event.image_url or '/static/img/default-event.jpg' }}" class="card-img-top"
-            style="height: 200px; object-fit: cover;" alt="{{ event.title }}">
+            style="height:200px;object-fit:cover;" alt="{{ event.title }}">
           <div class="position-absolute top-0 end-0 m-3">
             <span class="badge bg-white text-dark shadow-sm">{{ event.category.value }}</span>
           </div>
@@ -69,27 +69,26 @@
           <div class="d-flex gap-2 mb-3">
             <form method="post" action="/bookmarks/status/{{ event.id }}">
               <input type="hidden" name="status" value="attended">
-              <button type="submit"
-                class="btn btn-sm rounded-pill fw-bold {{ 'btn-success' if status_map.get(event.id) == 'attended' else 'btn-outline-success' }}">
-                <span class="material-symbols-outlined fs-6 align-middle">check_circle</span>
-                Attended
+              <button type="submit" class="btn btn-sm rounded-pill fw-bold
+                {{ 'btn-success' if status_map.get(event.id) == 'attended' else 'btn-outline-success' }}">
+                <span class="material-symbols-outlined fs-6 align-middle">check_circle</span> Attended
               </button>
             </form>
             <form method="post" action="/bookmarks/status/{{ event.id }}">
               <input type="hidden" name="status" value="want_to_attend">
-              <button type="submit"
-                class="btn btn-sm rounded-pill fw-bold {{ 'btn-primary' if status_map.get(event.id) == 'want_to_attend' else 'btn-outline-primary' }}">
-                <span class="material-symbols-outlined fs-6 align-middle">bookmark_add</span>
-                Want to Go
+              <button type="submit" class="btn btn-sm rounded-pill fw-bold
+                {{ 'btn-primary' if status_map.get(event.id) == 'want_to_attend' else 'btn-outline-primary' }}">
+                <span class="material-symbols-outlined fs-6 align-middle">bookmark_add</span> Want to Go
               </button>
             </form>
           </div>
 
           {% if user_albums %}
           <div class="mb-3">
-            <label class="d-block text-uppercase fw-bold text-muted mb-1" style="font-size: 0.6rem;">Add to Album</label>
+            <label class="d-block text-uppercase fw-bold text-muted mb-1" style="font-size:.6rem;">Add to Album</label>
             <form method="post" class="d-flex gap-2">
-              <select name="album_id" class="form-select form-select-sm rounded-pill" id="albumSelect_{{ event.id }}">
+              <select name="album_id" class="form-select form-select-sm rounded-pill"
+                id="albumSelect_{{ event.id }}">
                 {% for album in user_albums %}
                 <option value="{{ album.id }}">{{ album.name }}</option>
                 {% endfor %}
@@ -103,26 +102,18 @@
           {% endif %}
 
           <div class="mb-3">
-            <label class="d-block text-uppercase fw-bold text-muted mb-2" style="font-size: 0.6rem;">My Uploads</label>
+            <label class="d-block text-uppercase fw-bold text-muted mb-2" style="font-size:.6rem;">My Uploads</label>
             <div class="d-flex gap-2 flex-wrap">
               {% set event_photos = event.photos | selectattr("user_id", "equalto", user.id) | list %}
               {% if event_photos %}
               {% for photo in event_photos[:4] %}
-              <div class="position-relative">
-                <img src="{{ photo.filepath }}" class="rounded-2 border"
-                  style="width: 45px; height: 45px; object-fit: cover;">
-                {% if not photo.approved %}
-                <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 rounded-2 d-flex align-items-center justify-content-center"
-                  title="Pending Approval">
-                  <span class="material-symbols-outlined text-white fs-6">schedule</span>
-                </div>
-                {% endif %}
-              </div>
+              <img src="{{ photo.filepath }}" class="rounded-2 border"
+                style="width:45px;height:45px;object-fit:cover;">
               {% endfor %}
               {% else %}
               <div class="d-flex align-items-center gap-2">
                 <div class="rounded-2 border d-flex align-items-center justify-content-center text-muted"
-                  style="width: 45px; height: 45px; border-style: dashed !important;">
+                  style="width:45px;height:45px;border-style:dashed !important;">
                   <span class="material-symbols-outlined fs-6">add_a_photo</span>
                 </div>
                 <span class="text-muted small">No photos</span>
@@ -165,9 +156,6 @@
           <div class="d-flex align-items-center bg-warning-subtle px-2 py-1 rounded-pill">
             <span class="fw-bold text-warning-emphasis me-1">{{ review.rating }}</span>
             <span class="material-symbols-outlined text-warning fs-6">star</span>
-            {% if not review.approved %}
-            <span class="ms-2 badge rounded-pill bg-warning text-dark" style="font-size: 0.55rem;">Pending</span>
-            {% endif %}
           </div>
         </div>
         <p class="text-muted mb-0 small">"{{ review.body }}"</p>
@@ -187,14 +175,9 @@
   <div class="row g-3">
     {% for photo in user_photos %}
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="ratio ratio-1x1 position-relative">
-        <img src="{{ photo.filepath }}" class="rounded-3 shadow-sm border w-100 h-100" style="object-fit: cover;"
-          alt="Upload">
-        {% if not photo.approved %}
-        <div class="position-absolute top-0 start-0 m-2">
-          <span class="badge rounded-pill bg-warning text-dark" style="font-size: 0.6rem;">Pending</span>
-        </div>
-        {% endif %}
+      <div class="ratio ratio-1x1">
+        <img src="{{ photo.filepath }}" class="rounded-3 shadow-sm border w-100 h-100"
+          style="object-fit:cover;" alt="Upload">
       </div>
     </div>
     {% endfor %}
@@ -209,7 +192,8 @@
 <div class="mb-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="h5 fw-bold mb-0">My Albums</h3>
-    <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#createAlbumModal">
+    <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal"
+      data-bs-target="#createAlbumModal">
       <span class="material-symbols-outlined fs-6 align-middle">add</span> New Album
     </button>
   </div>
@@ -218,16 +202,24 @@
   <div class="row g-4">
     {% for album in user_albums %}
     <div class="col-12 col-md-4">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 d-flex flex-row align-items-center">
-        <div class="bg-info-subtle text-info p-3 rounded-3 me-3">
+      {# Entire card is a link to the album detail page #}
+      <a href="/albums/{{ album.id }}"
+         class="card border-0 shadow-sm rounded-4 p-3 h-100 d-flex flex-row align-items-center text-decoration-none text-dark"
+         style="transition:box-shadow .15s,transform .15s;"
+         onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,.12)';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.boxShadow='';this.style.transform=''">
+        <div class="bg-info-subtle text-info p-3 rounded-3 me-3 flex-shrink-0">
           <span class="material-symbols-outlined">folder_special</span>
         </div>
-        <div>
-          <h6 class="fw-bold mb-0">{{ album.name }}</h6>
-          <p class="text-muted small mb-0">{{ album.events | length }} Events</p>
-          {% if album.description %}<p class="text-muted small mb-0">{{ album.description }}</p>{% endif %}
+        <div class="overflow-hidden">
+          <h6 class="fw-bold mb-0 text-truncate">{{ album.name }}</h6>
+          <p class="text-muted small mb-0">{{ album.events | length }} event{{ 's' if album.events | length != 1 else '' }}</p>
+          {% if album.description %}
+          <p class="text-muted small mb-0 text-truncate">{{ album.description }}</p>
+          {% endif %}
         </div>
-      </div>
+        <span class="material-symbols-outlined text-muted ms-auto flex-shrink-0" style="font-size:18px;">chevron_right</span>
+      </a>
     </div>
     {% endfor %}
   </div>
@@ -250,7 +242,8 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label fw-bold small text-uppercase">Album Name</label>
-            <input type="text" name="name" class="form-control rounded-3" placeholder="e.g. Carnival 2026" required>
+            <input type="text" name="name" class="form-control rounded-3"
+              placeholder="e.g. Carnival 2026" required>
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold small text-uppercase">Description (optional)</label>
