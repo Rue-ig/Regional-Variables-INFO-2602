@@ -846,32 +846,34 @@
   }
   
   async function toggleAlbum(albumId, eventId, isChecked) {
-      const url = isChecked ? `/albums/${albumId}/add-event/${eventId}` : `/albums/${albumId}/remove-event/${eventId}`;
-      
-      try {
-          const response = await fetch(url, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-              },
-          });
-          
-          if (response.ok) {
-              const message = isChecked ? 'Added to album' : 'Removed from album';
-              showToast(message);
-              updateEventCount(albumId, isChecked ? 1 : -1);
-          } else {
-              showToast('Something went wrong', true);
-              const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
-              if (checkbox) checkbox.checked = !isChecked;
-          }
-      } catch (error) {
-          console.error('Error:', error);
-          showToast('Failed to update', true);
-          const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
-          if (checkbox) checkbox.checked = !isChecked;
-      }
+    const url = isChecked ? `/albums/${albumId}/add-event/${eventId}` : `/albums/${albumId}/remove-event/${eventId}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
+        
+        if (response.ok) {
+            const message = isChecked ? 'Added to album' : 'Removed from album';
+            showToast(message);
+            updateEventCount(albumId, isChecked ? 1 : -1);
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Operation failed', true);
+            const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
+            if (checkbox) checkbox.checked = !isChecked;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to update', true);
+        const checkbox = document.querySelector(`.playlist-item[data-album-id="${albumId}"] .playlist-checkbox`);
+        if (checkbox) checkbox.checked = !isChecked;
+    }
   }
+  
   
   function updateEventCount(albumId, delta) {
       const playlistItem = document.querySelector(`.playlist-item[data-album-id="${albumId}"]`);
