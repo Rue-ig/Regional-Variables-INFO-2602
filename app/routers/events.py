@@ -123,7 +123,7 @@ async def event_detail(
         total = sum(r.rating for r in reviews)
         avg_rating = round(total / len(reviews), 1)
     
-    albums = []
+    albums = db.exec(select(Album).where(Album.user_id == user.id)).all()
     albums_with_event = set()
     
     if user:
