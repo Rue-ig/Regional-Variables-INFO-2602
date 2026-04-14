@@ -13,3 +13,10 @@ class ContactInquiry(SQLModel, table=True):
     reply_body: Optional[str] = None
     replied_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class FAQ(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    question: str
+    answer: str
+    category: str = Field(index=True)
+    order: int = 0
