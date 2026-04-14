@@ -164,7 +164,7 @@
 <section class="hero-section">
     <div class="swiper heroSwiper">
         <div class="swiper-wrapper">
-            {% for event in highest_rated %}
+            {% for event in featured_events %}
             <div class="swiper-slide">
                 <div class="slide-card-top">
                     <img src="{{ event.image_url or '/static/img/placeholder.jpg' }}" alt="Event">
