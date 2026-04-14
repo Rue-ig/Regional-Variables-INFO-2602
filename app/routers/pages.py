@@ -21,6 +21,9 @@ async def faq(request: Request, user: UserDep = None):
 
 @router.get("/contact", response_class=HTMLResponse)
 async def contact(request: Request, user: UserDep = None):
+    if user and getattr(user, "role", None) == "admin":
+        return RedirectResponse(url="/admin/contact", status_code=303)
+        
     return templates.TemplateResponse(request, "pages/contact.html", _ctx(request, user))
 
 @router.post("/contact")
