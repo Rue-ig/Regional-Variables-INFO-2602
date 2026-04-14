@@ -296,7 +296,9 @@
               {% if user and (user.id == review.user_id or user.role == 'admin') %}
               <form action="/reviews/{{ review.id }}/delete" method="POST">
                 <button type="submit" class="btn btn-link text-danger btn-sm p-0"
-                  onclick="return confirm('Delete review?');">Delete</button>
+                  onclick="return confirm('Delete review?');">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
               </form>
               {% endif %}
             </div>
@@ -329,6 +331,16 @@
                 <span class="material-symbols-outlined" style="font-size:14px;">thumb_down</span>
                 <span class="down-count">{{ review.downvotes or 0 }}</span>
               </button>
+              <button type="button" 
+                class="btn btn-sm btn-outline-danger report-btn" 
+                data-bs-toggle="modal" 
+                data-bs-target="#reportModal"
+                data-item-id="{{ item_id }}"
+                data-item-type="{{ item_type }}"
+                data-item-title="{{ item_title }}">
+                <span class="material-symbols-outlined" style="font-size:14px;">report</span>
+                Report
+            </button>
             </div>
           </div>
         </div>
