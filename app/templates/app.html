@@ -62,14 +62,27 @@
     </div>
 </div>
 
+{# Replace the Update Profile Modal in your settings template #}
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="/app/edit-profile" method="POST" class="modal-content border-0 shadow">
+        <form action="/app/edit-profile" method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow">
             <div class="modal-header border-bottom-0">
                 <h5 class="modal-title fw-bold">Update Profile</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="mb-3 text-center">
+                    <label class="form-label d-block text-muted small fw-bold">PROFILE PICTURE</label>
+                    <input type="file" name="profile_pic" id="profile_pic" class="d-none" accept="image/*" onchange="previewImage(this)">
+                    <div class="position-relative d-inline-block">
+                        <img id="avatar-preview" src="{{ user.profile_pic_url or '/static/img/default-avatar.png' }}" 
+                             class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                        <button type="button" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle" 
+                                onclick="document.getElementById('profile_pic').click()">
+                            <span class="material-symbols-outlined fs-6">photo_camera</span>
+                        </button>
+                    </div>
+                </div>
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-bold">USERNAME</label>
                     <input type="text" name="username" class="form-control form-control-lg" value="{{ user.username }}" required>
@@ -125,4 +138,16 @@
         </form>
     </div>
 </div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatar-preview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 {% endblock %}
