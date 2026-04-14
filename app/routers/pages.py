@@ -26,6 +26,22 @@ async def contact(request: Request, user: UserDep = None):
         
     return templates.TemplateResponse(request, "pages/contact.html", _ctx(request, user))
 
+@router.get("/privacy", response_class=HTMLResponse)
+async def privacy(request: Request, user: UserDep = None):
+    return templates.TemplateResponse(request, "pages/privacy.html", _ctx(request, user))
+
+@router.get("/terms", response_class=HTMLResponse)
+async def terms(request: Request, user: UserDep = None):
+    return templates.TemplateResponse(request, "pages/terms.html", _ctx(request, user))
+
+@router.get("/cookies", response_class=HTMLResponse)
+async def cookies(request: Request, user: UserDep = None):
+    return templates.TemplateResponse(request, "pages/cookies.html", _ctx(request, user))
+
+@router.get("/disclaimer", response_class=HTMLResponse)
+async def disclaimer(request: Request, user: UserDep = None):
+    return templates.TemplateResponse(request, "pages/disclaimer.html", _ctx(request, user))
+
 @router.post("/contact")
 async def contact_submit(
     request: Request,
@@ -46,18 +62,13 @@ async def contact_submit(
         _ctx(request, user, submitted=True)
     )
 
-@router.get("/privacy", response_class=HTMLResponse)
-async def privacy(request: Request, user: UserDep = None):
-    return templates.TemplateResponse(request, "pages/privacy.html", _ctx(request, user))
-
-@router.get("/terms", response_class=HTMLResponse)
-async def terms(request: Request, user: UserDep = None):
-    return templates.TemplateResponse(request, "pages/terms.html", _ctx(request, user))
-
-@router.get("/cookies", response_class=HTMLResponse)
-async def cookies(request: Request, user: UserDep = None):
-    return templates.TemplateResponse(request, "pages/cookies.html", _ctx(request, user))
-
-@router.get("/disclaimer", response_class=HTMLResponse)
-async def disclaimer(request: Request, user: UserDep = None):
-    return templates.TemplateResponse(request, "pages/disclaimer.html", _ctx(request, user))
+@router.post("/faq/edit")
+async def edit_faq(
+    request: Request,
+    user: AdminDep,
+    db: SessionDep,
+    faq_data: str = Form(...),
+):
+    flash(request, "FAQ editing mode initiated.", "info")
+    
+    return RedirectResponse(url="/admin/faq/edit", status_code=303)
