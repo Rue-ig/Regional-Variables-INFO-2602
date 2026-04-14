@@ -1,24 +1,111 @@
 {# PATH: app/templates/pages/disclaimer.html #}
-{% extends "authenticated-base.html" if user else "base.html" %}
-{% block title %}Disclaimer{% endblock %}
+{% extends "authenticated-base.html" %}
+
+{% block title %}Disclaimer – dwivé{% endblock %}
+
 {% block additional_styles %}
 <style>
-  .static-page{max-width:820px;margin:0 auto;}
-  .static-hero{background:linear-gradient(135deg,#0d1f35 0%,#0a3a5c 60%,#0a4a6e 100%);border-radius:18px;padding:48px 40px 40px;margin-bottom:28px;}
-  .static-hero h1{color:#fff;font-size:2rem;font-weight:800;margin:0 0 8px;}
-  .static-hero p{color:rgba(255,255,255,.65);margin:0;font-size:15px;}
-  .hero-icon{width:52px;height:52px;border-radius:14px;margin-bottom:18px;background:rgba(255,107,53,.15);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,107,53,.35);}
-  .hero-icon .material-symbols-outlined{font-size:28px;color:#ff6b35;}
-  .static-card{background:#fff;border-radius:16px;border:1px solid #eef0f3;padding:32px;margin-bottom:20px;}
-  .static-card h2{font-size:1.05rem;font-weight:700;color:#0d1f35;display:flex;align-items:center;gap:9px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f3f4f6;}
-  .static-card h2 .material-symbols-outlined{font-size:20px;color:#ff6b35;}
-  .static-card p{font-size:14px;color:#4b5563;line-height:1.75;}
-  .highlight-box{background:#fef3c7;border:1px solid #fbbf24;border-radius:12px;padding:16px 20px;display:flex;gap:12px;align-items:flex-start;margin-top:4px;}
-  .highlight-box .material-symbols-outlined{font-size:20px;color:#d97706;flex-shrink:0;margin-top:1px;}
-  .highlight-box p{margin:0;font-size:13px;color:#92400e;line-height:1.65;}
+  .static-page {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  .static-hero {
+    background: linear-gradient(135deg, #0d1f35 0%, #0a3a5c 60%, #0a4a6e 100%);
+    border-radius: 18px;
+    padding: 48px 40px 40px;
+    margin-bottom: 28px;
+  }
+
+  .static-hero h1 {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+  }
+
+  .static-hero p {
+    color: rgba(255, 255, 255, .65);
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    background: rgba(255, 107, 53, .15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 107, 53, .35);
+  }
+
+  .hero-icon .material-symbols-outlined {
+    font-size: 28px;
+    color: #ff6b35;
+  }
+
+  .static-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eef0f3;
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+
+  .static-card h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0d1f35;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .static-card h2 .material-symbols-outlined {
+    font-size: 20px;
+    color: #ff6b35;
+  }
+
+  .static-card p {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.75;
+  }
+
+  .highlight-box {
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 4px;
+  }
+
+  .highlight-box .material-symbols-outlined {
+    font-size: 20px;
+    color: #d97706;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .highlight-box p {
+    margin: 0;
+    font-size: 13px;
+    color: #92400e;
+    line-height: 1.65;
+  }
 </style>
 {% endblock %}
-{% macro body() %}
+
+{% set page_body %}
 <div class="static-page">
   <div class="static-hero">
     <div class="hero-icon"><span class="material-symbols-outlined">warning</span></div>
@@ -27,29 +114,41 @@
   </div>
   <div class="static-card">
     <h2><span class="material-symbols-outlined">info</span>We are an aggregator, not an organiser</h2>
-    <p>DWIVE is an event discovery and aggregation platform. We collect and display publicly available event information from third-party sources including Eventbrite, Ticketmaster, islandetickets.com, and others. We are not affiliated with, endorsed by, or acting as an agent of any event organiser, ticketing company, or venue listed on this platform.</p>
+    <p>DWIVE is an event discovery and aggregation platform. We collect and display publicly available event information
+      from third-party sources including Eventbrite, Ticketmaster, islandetickets.com, and others. We are not affiliated
+      with, endorsed by, or acting as an agent of any event organiser, ticketing company, or venue listed on this
+      platform.</p>
   </div>
   <div class="static-card">
     <h2><span class="material-symbols-outlined">warning</span>Accuracy of information</h2>
     <div class="highlight-box">
       <span class="material-symbols-outlined">info</span>
-      <p>Event details — including dates, times, venues, prices, and line-ups — are sourced automatically and may be outdated or inaccurate. Always verify details directly with the event organiser before making any travel, accommodation, or ticketing arrangements.</p>
+      <p>Event details — including dates, times, venues, prices, and line-ups — are sourced automatically and may be
+        outdated or inaccurate. Always verify details directly with the event organiser before making any travel,
+        accommodation, or ticketing arrangements.</p>
     </div>
-    <p style="margin-top:14px">DWIVE makes no representation or warranty, express or implied, about the accuracy, completeness, or reliability of any event information displayed on this platform.</p>
+    <p style="margin-top:14px">DWIVE makes no representation or warranty, express or implied, about the accuracy,
+      completeness, or reliability of any event information displayed on this platform.</p>
   </div>
   <div class="static-card">
     <h2><span class="material-symbols-outlined">cancel</span>No liability for event changes</h2>
-    <p>Events may be cancelled, postponed, or relocated by organisers without notice to DWIVE. We accept no liability for any loss, inconvenience, or expense arising from changes to listed events, including but not limited to travel costs, accommodation costs, or non-refundable ticket purchases.</p>
+    <p>Events may be cancelled, postponed, or relocated by organisers without notice to DWIVE. We accept no liability
+      for any loss, inconvenience, or expense arising from changes to listed events, including but not limited to travel
+      costs, accommodation costs, or non-refundable ticket purchases.</p>
   </div>
   <div class="static-card">
     <h2><span class="material-symbols-outlined">link</span>Third-party links</h2>
-    <p>DWIVE contains links to third-party ticketing platforms and event websites. These links are provided for convenience only. We have no control over the content of those sites and accept no responsibility for their content, privacy practices, or availability.</p>
+    <p>DWIVE contains links to third-party ticketing platforms and event websites. These links are provided for
+      convenience only. We have no control over the content of those sites and accept no responsibility for their
+      content, privacy practices, or availability.</p>
   </div>
   <div class="static-card">
     <h2><span class="material-symbols-outlined">rate_review</span>User-generated content</h2>
-    <p>Reviews and photos submitted by users reflect the opinions of individual community members and do not represent the views of DWIVE. We moderate content for compliance with our community guidelines but cannot verify the accuracy of user reviews.</p>
+    <p>Reviews and photos submitted by users reflect the opinions of individual community members and do not represent
+      the views of DWIVE. We moderate content for compliance with our community guidelines but cannot verify the
+      accuracy of user reviews.</p>
   </div>
 </div>
-{% endmacro %}
-{% block subpage_content %}{{ body() }}{% endblock %}
-{% block content %}{{ body() }}{% endblock %}
+{% endset %}
+
+{% block subpage_content %}{{ page_body }}{% endblock %}
