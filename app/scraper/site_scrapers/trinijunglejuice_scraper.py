@@ -21,8 +21,13 @@ CATEGORY_MAP = {
     "Culture": "Culture & Arts",
 }
 
-def _detect_island(text: str) -> str:
-    text = text.lower().replace("-", " ")
+def _detect_island(location: dict) -> str:
+    city    = (location.get("city") or "")
+    state   = (location.get("state") or "")
+    country = (location.get("country") or "")
+    address = (location.get("address") or "")
+    text    = f"{city} {state} {country} {address}".lower().replace("-", " ")
+    
     mapping = {
         "port of spain":  "Trinidad",
         "chaguaramas":    "Trinidad",
