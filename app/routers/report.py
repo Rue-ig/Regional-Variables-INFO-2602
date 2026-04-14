@@ -3,8 +3,9 @@ from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from typing import Optional
 from app.database import get_session
-from app.models import Report, ReportReason, ReportStatus, Review
-from app.schemas import ReportCreate
+from app.models.report import Report, ReportReason, ReportStatus
+from app.models.review import Review
+from app.schemas.report import ReportCreate
 from datetime import datetime
 
 router = APIRouter(prefix="/reports", tags=["Reports"])

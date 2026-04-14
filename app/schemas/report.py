@@ -2,13 +2,7 @@ from sqlmodel import SQLModel
 from typing import Optional
 from enum import Enum
 from datetime import datetime
-
-class ReportReason(str, Enum):
-    SPAM = "Spam"
-    INAPPROPRIATE = "Inappropriate"
-    HARASSMENT = "Harassment"
-    OFFENSIVE = "Offensive"
-    OTHER = "Other"
+from app.models.report import ReportReason
 
 class ReportCreate(SQLModel):
     reason: ReportReason
