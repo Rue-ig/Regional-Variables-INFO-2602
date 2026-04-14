@@ -50,13 +50,30 @@ async def create_submission(
     source_url: Optional[str] = Form(None),
 ):
     try:
+        island_enum = Island(island)
+        event_date = datetime.fromisoformat(date)
+        
+        existing_event = db.exec(
+            select(Event).where(
+                Event.title == title.strip(),
+                Event.date == event_date,
+                Event.island == island_enum
+            )
+        ).first()
+
+        if existing_event:
+            return RedirectResponse(
+                url="/submissions?error=already_exists", 
+                status_code=303
+            )
+
         event = Event(
             title=title.strip(),
             description=description.strip(),
-            island=Island(island),
+            island=island_enum,
             category=EventCategory(category),
             venue=venue.strip(),
-            date=datetime.fromisoformat(date),
+            date=event_date,
             end_date=datetime.fromisoformat(end_date) if end_date else None,
             price=price,
             image_url=image_url.strip() if image_url else None,
@@ -64,11 +81,13 @@ async def create_submission(
             created_by=user.id,
             status=EventStatus.pending,
         )
+
         db.add(event)
         db.commit()
         return RedirectResponse(url="/submissions", status_code=303)
-        
+
     except Exception as e:
+        db.rollback()
         print(f"Submission error: {e}")
         return RedirectResponse(url="/submissions?error=submission_failed", status_code=303)
 
