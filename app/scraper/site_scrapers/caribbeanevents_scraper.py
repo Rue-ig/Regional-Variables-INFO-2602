@@ -1,3 +1,6 @@
+"""
+caribbeanevents.com scraper.
+"""
 import logging, re, sys, os, time
 from datetime import datetime
 from typing import Optional
@@ -141,16 +144,86 @@ class CaribbeanEventsScraper:
                 return None
 
     def scrape(self) -> list[dict]:
-        urls = self._get_event_urls()
-        logger.info(f"caribbeanevents.com: Found {len(urls)} URLs")
-        records = []
-        
-        for url in urls:
-            rec = self._scrape_event_page(url)
-            
-            if rec:
-                records.append(rec)
-                
+        soup = self._get_soup(f"{BASE_URL}/")
+        if not soup:
+            return []
+    
+        records   = []
+        seen_urls = set()
+    
+        for item in soup.select(".ovaem_slider_events_two .item, .ovaem_list_events_one .item"):
+            try:
+                link_el    = item.select_one("a[href*='/event/']")
+                if not link_el:
+                    continue
+                source_url = link_el.get("href", "")
+                if source_url in seen_urls:
+                    continue
+                seen_urls.add(source_url)
+    
+                title_el = item.select_one("h2.title a, h2.title")
+                title    = title_el.get_text(strip=True) if title_el else ""
+                if not title:
+                    continue
+                    
+                countdown = item.select_one("[data-day][data-month][data-year]")
+                date: Optional[datetime] = None
+                if countdown:
+                    try:
+                        date = datetime(
+                            int(countdown["data-year"]),
+                            int(countdown["data-month"]),
+                            int(countdown["data-day"]),
+                        )
+                    except (ValueError, KeyError):
+                        pass
+    
+                if not date:
+                    time_el = item.select_one(".time")
+                    if time_el:
+                        raw = time_el.get_text(strip=True)
+                        for fmt in ["%B %d, %Y", "%b %d, %Y", "%B %d %Y"]:
+                            try:
+                                date = datetime.strptime(raw, fmt)
+                                break
+                            except ValueError:
+                                continue
+    
+                if not date:
+                    continue
+    
+                venue_el = item.select_one(".venue")
+                venue    = venue_el.get_text(strip=True) if venue_el else "TBA"
+    
+                desc_el  = item.select_one(".desc")
+                desc     = desc_el.get_text(strip=True) if desc_el else ""
+    
+                image_url = None
+                wrap_img  = item.select_one(".wrap_img")
+                if wrap_img:
+                    style = wrap_img.get("style", "")
+                    m = re.search(r"url\(['\"]?(https?://[^'\")\s]+)['\"]?\)", style)
+                    if m:
+                        image_url = m.group(1)
+    
+                full_text = title + " " + desc
+                records.append({
+                    "title":       title,
+                    "description": desc[:1000],
+                    "island":      "Tobago" if "tobago" in full_text.lower() else "Trinidad",
+                    "venue":       venue,
+                    "date":        date,
+                    "end_date":    None,
+                    "price":       None,
+                    "category":   _detect_category(full_text),
+                    "source_url":  source_url,
+                    "image_url":   image_url,
+                })
+    
+            except Exception as ex:
+                logger.debug(f"caribbeanevents: skipping card: {ex}")
+    
+        logger.info(f"caribbeanevents.com: {len(records)} events scraped")
         return records
 
     def run(self, auto_publish: bool = False) -> dict:
