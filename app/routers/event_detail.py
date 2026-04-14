@@ -1,6 +1,6 @@
 # PATH: app/routers/event_detail.py
-from fastapi import Request, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from app.dependencies import SessionDep, UserDep
 from app.repositories.event import EventRepository
 from app.repositories.content import ReviewRepository, PhotoRepository, BookmarkRepository
@@ -77,25 +77,38 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
         },
     )
 
-@router.get("/user/events/{id}", response_class=HTMLResponse)
-async def user_event_detail(
+@router.post("/reviews/{review_id}/vote")
+async def vote_review(
     request: Request,
-    id: int,
+    review_id: int,
     db: SessionDep,
-    user: UserDep
+    user: UserDep,
+    vote: str = Form(...)
 ):
-    events = EventService(EventRepository(db)).repo.get_by_user(user.id)
-    event = None
-    for e in events:
-        if e.id == id:
-            event = e
-            break
-    
-    if event is None:
-        raise HTTPException(status_code=404, detail="Event not found")
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
 
-    return templates.TemplateResponse(
-        request=request,
-        name="User/events/user-event-detail.html",
-        context={"event": event, "user": user},
-    )
+    existing_vote = db.exec(
+        select(ReviewVote).where(
+            ReviewVote.user_id == user.id,
+            ReviewVote.review_id == review_id
+        )
+    ).first()
+
+    if existing_vote:
+        if existing_vote.vote == vote:
+            db.delete(existing_vote)
+            
+        else:
+            existing_vote.vote = vote
+            db.add(existing_vote)
+    else:
+        db.add(ReviewVote(user_id=user.id, review_id=review_id, vote=vote))
+
+    db.commit()
+    
+    review_record = db.get(Review, review_id)
+    if review_record:
+        return RedirectResponse(url=f"/events/{review_record.event_id}", status_code=303)
+        
+    return RedirectResponse(url="/events", status_code=303)
