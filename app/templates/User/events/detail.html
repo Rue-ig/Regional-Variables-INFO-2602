@@ -844,7 +844,7 @@
 
       <div class="album-list" id="albumList">
         {% for album in user_albums %}
-        {% set in_album = event.id in album.events | map(attribute='id') | list %}
+        {% set in_album = album.id in albums_with_event %}
         <div class="album-row {% if in_album %}selected{% endif %}" data-album-id="{{ album.id }}"
           data-event-id="{{ event.id }}" data-in-album="{{ 'true' if in_album else 'false' }}"
           onclick="handleAlbumRowClick(this)">
