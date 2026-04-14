@@ -41,6 +41,7 @@ class ReviewRepository:
         reviews = self.get_for_event(event_id, approved_only=True)
         if not reviews:
             return None
+        return round(sum(r.rating for r in reviews) / len(reviews), 1)
 
     def get_pending(self) -> list[Review]:
         return self.session.exec(

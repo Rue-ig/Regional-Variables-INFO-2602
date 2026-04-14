@@ -16,6 +16,12 @@ class ReviewService:
         self.repo = repo
         self.vote_repo = vote_repo
 
+    def get_for_event(self, event_id: int) -> list[Review]:
+        return self.repo.get_for_event(event_id)
+    
+    def get_average_rating(self, event_id: int) -> Optional[float]: 
+        return self.repo.average_rating(event_id)
+
     def submit(self, event_id: int, user_id: int, rating: int, body: str) -> Review:
         if self.repo.get_by_user_and_event(user_id, event_id):
             raise HTTPException(status_code=400, detail="You have already reviewed this event")
