@@ -63,16 +63,30 @@ async def user_dashboard_view(request: Request, user: AuthDep, db: SessionDep):
     )
 
 @router.post("/app/edit-profile")
-async def edit_profile(user: AuthDep, db: SessionDep, username: str = Form(...)):
-    if username == user.username:
-        return RedirectResponse(url="/app", status_code=303)
-    
-    existing_user = db.exec(select(User).where(User.username == username)).first()
-    
-    if existing_user:
-        return RedirectResponse(url="/app?msg=Error:+Username+taken", status_code=303)
-    
-    user.username = username
+async def edit_profile(
+    user: AuthDep, 
+    db: SessionDep, 
+    username: str = Form(...),
+    profile_pic: UploadFile = File(None)
+):
+    if username != user.username:
+        existing_user = db.exec(select(User).where(User.username == username)).first()
+        if not existing_user:
+            user.username = username
+
+    if profile_pic and profile_pic.filename:
+        ext = os.path.splitext(profile_pic.filename)[1].lower()
+        if ext in {".jpg", ".jpeg", ".png", ".webp"}:
+            os.makedirs("app/static/uploads/avatars", exist_ok=True)
+            filename = f"{uuid.uuid4().hex}{ext}"
+            path = f"app/static/uploads/avatars/{filename}"
+            
+            content = await profile_pic.read()
+            with open(path, "wb") as f:
+                f.write(content)
+            
+            user.avatar_url = f"/static/uploads/avatars/{filename}"
+
     db.add(user)
     db.commit()
     
