@@ -843,42 +843,39 @@
       </div>
 
       <div id="albumList">
-        {% for album in albums %}
-          {% set in_album = event.id in album.events | map(attribute='id') | list %}
-          
-          <div class="album-row {% if in_album %}selected{% endif %}" 
-              data-album-id="{{ album.id }}"
-              data-event-id="{{ event.id }}" 
-              data-in-album="{{ 'true' if in_album else 'false' }}"
-              onclick="handleAlbumRowClick(this)">
-            
-            <div class="album-row-icon">
-              <span class="material-symbols-outlined">photo_album</span>
-            </div>
+        {% for album in user_albums %}
+        {% set in_album = event.id in album.events | map(attribute='id') | list %}
 
-            <div class="album-row-info">
-              <div class="album-row-name">{{ album.name }}</div>
-              <div class="album-row-count">
-                {{ album.events|length }} event{{ 's' if album.events|length != 1 else '' }}
-              </div>
-            </div>
+        <div class="album-row {% if in_album %}selected{% endif %}" data-album-id="{{ album.id }}"
+          data-event-id="{{ event.id }}" data-in-album="{{ 'true' if in_album else 'false' }}"
+          onclick="handleAlbumRowClick(this)">
 
-            <div class="ms-auto me-2" onclick="event.stopPropagation();">
-            <button type="button" 
-                    class="btn btn-link text-danger p-0 border-0"
-                    onclick="deleteAlbum(event, {{ album.id }}, this)">
+          <div class="album-row-icon">
+            <span class="material-symbols-outlined">photo_album</span>
+          </div>
+
+          <div class="album-row-info">
+            <div class="album-row-name">{{ album.name }}</div>
+            <div class="album-row-count">
+              {{ album.events|length }} event{{ 's' if album.events|length != 1 else '' }}
+            </div>
+          </div>
+
+          <div class="ms-auto me-2" onclick="event.stopPropagation();">
+            <button type="button" class="btn btn-link text-danger p-0 border-0"
+              onclick="deleteAlbum(event, {{ album.id }}, this)">
               <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
             </button>
-            </div>
+          </div>
 
-            <div class="album-row-check">
-              <span class="material-symbols-outlined">check_circle</span>
-            </div>
+          <div class="album-row-check">
+            <span class="material-symbols-outlined">check_circle</span>
           </div>
+        </div>
         {% else %}
-          <div class="text-center p-4 text-muted">
-            <p>No albums created yet.</p>
-          </div>
+        <div class="text-center p-4 text-muted">
+          <p>No albums created yet.</p>
+        </div>
         {% endfor %}
       </div>
     </div>
@@ -933,20 +930,47 @@
 
 {% block subpage_scripts %}
 <script>
+  let _reportItemId = null;
+  let _reportItemType = null;
+  let _toastTimeout;
+
+  function showToast(message, isError = false) {
+    document.querySelector('.success-toast')?.remove();
+    clearTimeout(_toastTimeout);
+    const toast = document.createElement('div');
+    toast.className = 'success-toast';
+    toast.style.background = isError ? '#dc2626' : '#0f172a';
+    toast.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">${isError ? 'error' : 'check_circle'}</span> ${message}`;
+    document.body.appendChild(toast);
+    _toastTimeout = setTimeout(() => toast.remove(), 3000);
+  }
+
   async function toggleBookmark(btn) {
     const id = btn.dataset.eventId;
-    const res = await fetch(`/api/bookmarks/toggle/${id}`, { method: 'POST' });
-    const data = await res.json();
-    btn.textContent = data.bookmarked ? '🔖 Saved' : '🔖 Save Event';
-    btn.className = data.bookmarked ? 'btn btn-success w-100 mb-3' : 'btn btn-outline-primary w-100 mb-3';
+    try {
+      const res = await fetch(`/api/bookmarks/toggle/${id}`, { method: 'POST' });
+      const data = await res.json();
+      btn.textContent = data.bookmarked ? '🔖 Saved' : '🔖 Save Event';
+      btn.className = data.bookmarked ? 'btn btn-success w-100 mb-3' : 'btn btn-outline-primary w-100 mb-3';
+    } catch (err) {
+      showToast('Connection error', true);
+    }
   }
 
   let selectedRating = 0;
-  document.querySelectorAll('#starPicker label').forEach((label, idx) => {
-    label.addEventListener('click', () => { selectedRating = idx + 1; highlight(selectedRating); });
-    label.addEventListener('mouseover', () => highlight(idx + 1));
-    label.addEventListener('mouseleave', () => highlight(selectedRating));
-  });
+  function initStarPicker() {
+    const stars = document.querySelectorAll('#starPicker .star');
+    const labels = document.querySelectorAll('#starPicker label');
+
+    labels.forEach((label, idx) => {
+      label.addEventListener('click', () => {
+        selectedRating = idx + 1;
+        highlight(selectedRating);
+      });
+      label.addEventListener('mouseover', () => highlight(idx + 1));
+      label.addEventListener('mouseleave', () => highlight(selectedRating));
+    });
+  }
 
   function highlight(n) {
     document.querySelectorAll('#starPicker .star').forEach((s, i) => {
@@ -958,9 +982,10 @@
     const reviewId = btn.dataset.reviewId;
     const vote = btn.dataset.vote;
     const card = document.getElementById(`review-${reviewId}`);
+    if (!card) return;
+
     const upBtn = card.querySelector('.vote-btn.up');
     const downBtn = card.querySelector('.vote-btn.down');
-
     const newVote = btn.classList.contains('active') ? 'none' : vote;
 
     const form = new FormData();
@@ -980,14 +1005,10 @@
         upBtn.classList.remove('active');
         downBtn.classList.remove('active');
 
-        if (newVote === 'up')
-          upBtn.classList.add('active');
-
-        else if (newVote === 'down')
-          downBtn.classList.add('active');
+        if (newVote === 'up') upBtn.classList.add('active');
+        else if (newVote === 'down') downBtn.classList.add('active');
       }
     } catch (err) {
-      console.error("Vote failed:", err);
       showToast('Could not save vote', true);
     }
   }
@@ -1019,18 +1040,20 @@
     document.body.style.overflow = '';
   }
 
-  let _reportItemId = null;
-  let _reportItemType = null;
+  const reportModal = document.getElementById('reportModal');
+  if (reportModal) {
+    reportModal.addEventListener('show.bs.modal', function (e) {
+      const trigger = e.relatedTarget;
+      _reportItemId = trigger.dataset.itemId;
+      _reportItemType = trigger.dataset.itemType;
+      this.querySelector('.modal-title').textContent = `Report ${_reportItemType}`;
+    });
+  }
 
-  document.getElementById('reportModal').addEventListener('show.bs.modal', function (e) {
-    const trigger = e.relatedTarget;
-    _reportItemId = trigger.dataset.itemId;
-    _reportItemType = trigger.dataset.itemType;
-    this.querySelector('.modal-title').textContent = `Report ${_reportItemType}`;
-  });
-
-  document.getElementById('reportForm').addEventListener('submit', async function (e) {
+  document.getElementById('reportForm')?.addEventListener('submit', async function (e) {
     e.preventDefault();
+    if (!_reportItemId || !_reportItemType) return;
+
     const formData = new FormData(this);
     const payload = Object.fromEntries(formData.entries());
 
@@ -1042,7 +1065,7 @@
       });
 
       if (res.ok) {
-        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+        const modalInstance = bootstrap.Modal.getInstance(reportModal);
         if (modalInstance) modalInstance.hide();
         showToast(`${_reportItemType.charAt(0).toUpperCase() + _reportItemType.slice(1)} reported successfully!`);
         this.reset();
@@ -1051,7 +1074,7 @@
         showToast(err.detail || 'Error submitting report', true);
       }
     } catch (err) {
-      showToast('Server error. Please try again later.', true);
+      showToast('Server error', true);
     }
   });
 
@@ -1066,7 +1089,7 @@
     document.body.style.overflow = '';
   }
 
-  document.getElementById('albumModalBackdrop').addEventListener('click', function (e) {
+  document.getElementById('albumModalBackdrop')?.addEventListener('click', function (e) {
     if (e.target === this) closeAlbumModal();
   });
 
@@ -1083,7 +1106,9 @@
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
-      if (res.ok) {
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
         const nowInAlbum = !inAlbum;
         row.dataset.inAlbum = nowInAlbum ? 'true' : 'false';
         row.classList.toggle('selected', nowInAlbum);
@@ -1093,14 +1118,12 @@
         const cur = match ? parseInt(match[0]) : 0;
         const next = nowInAlbum ? cur + 1 : Math.max(0, cur - 1);
         countEl.textContent = `${next} event${next !== 1 ? 's' : ''}`;
-
-        showToast(nowInAlbum ? 'Added to album' : 'Removed from album');
+        showToast(data.message || (nowInAlbum ? 'Added to album' : 'Removed from album'));
       } else {
-        const err = await res.json();
-        showToast(err.detail || 'Operation failed', true);
+        showToast(data.detail || 'Operation failed', true);
       }
     } catch (err) {
-      showToast('Failed to update album', true);
+      showToast('Connection error', true);
     }
   }
 
@@ -1123,49 +1146,35 @@
     }
 
     const description = document.getElementById('newAlbumDesc').value.trim();
-    const evtId = {{ event.id }};
+    const evtId = "{{ event.id }}";
 
     try {
       const body = new URLSearchParams({ name, description });
       const res = await fetch('/albums/create', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/x-www-form-urlencoded', 
-          'X-Requested-With': 'XMLHttpRequest' 
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: body.toString()
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+      if (res.ok && data.success) {
         showToast(`Album "${data.name}" created!`);
-        
+
         await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
           method: 'POST',
           headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
-        
+
         setTimeout(() => window.location.reload(), 500);
       } else {
-        const err = await res.json();
-        showToast(err.detail || 'Failed to create album', true);
+        showToast(data.detail || 'Failed to create album', true);
       }
     } catch (err) {
-      console.error(err);
       showToast('Failed to create album', true);
     }
-  }
-
-  let _toastTimeout;
-  function showToast(message, isError = false) {
-    document.querySelector('.success-toast')?.remove();
-    clearTimeout(_toastTimeout);
-    const toast = document.createElement('div');
-    toast.className = 'success-toast';
-    toast.style.background = isError ? '#dc2626' : '#0f172a';
-    toast.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;">${isError ? 'error' : 'check_circle'}</span> ${message}`;
-    document.body.appendChild(toast);
-    _toastTimeout = setTimeout(() => toast.remove(), 3000);
   }
 
   async function deleteAlbum(e, albumId, btn) {
@@ -1174,9 +1183,9 @@
 
     try {
       const res = await fetch(`/albums/${albumId}/delete`, {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        method: 'POST'
       });
+      
       if (res.ok) {
         const row = btn.closest('.album-row');
         row.remove();
@@ -1187,13 +1196,16 @@
             '<div class="text-center p-4 text-muted"><p>No albums created yet.</p></div>';
         }
       } else {
-        const err = await res.json();
-        showToast(err.detail || 'Could not delete album', true);
+        showToast('Could not delete album', true);
       }
     } catch (err) {
       showToast('Failed to delete album', true);
     }
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initStarPicker();
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
@@ -1201,8 +1213,5 @@
       closeAlbumModal();
     }
   });
-</script>
-<script>
-  document.getElementById('albumModalBackdrop').dataset.eventId = '{{ event.id }}';
 </script>
 {% endblock %}
