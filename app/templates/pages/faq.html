@@ -1,6 +1,8 @@
 {# PATH: app/templates/pages/faq.html #}
-{% extends "authenticated-base.html" if user else "base.html" %}
+{% extends "authenticated-base.html" %}
+
 {% block title %}FAQ – dwivé{% endblock %}
+
 {% block additional_styles %}
 <style>
   .static-page {
@@ -121,7 +123,7 @@
 {% endblock %}
 
 {% set page_body %}
-<div class="static-page {% if not user %}pt-5 mt-4{% endif %}">
+<div class="static-page">
   {% if user and user.role == 'admin' %}
   <div class="text-end mb-3">
     <span class="badge bg-info">Admin view — FAQ is editable via content management</span>
@@ -210,4 +212,3 @@
 {% endset %}
 
 {% block subpage_content %}{{ page_body }}{% endblock %}
-{% block content %}<div class="container">{{ page_body }}</div>{% endblock %}
