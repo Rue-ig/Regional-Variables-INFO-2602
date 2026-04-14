@@ -21,6 +21,10 @@ class EventRepository:
         )
         
         return self.session.exec(statement).first()
+    
+    def get_by_user(self, user_id: int) -> list[Event]:
+        query = select(Event).where(Event.created_by == user_id).order_by(Event.created_at.desc())
+        return self.session.exec(query).all()
 
     def _apply_filters(self, query, filters: Optional[EventFilter]):
         if not filters:
