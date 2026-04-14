@@ -78,7 +78,7 @@ class ReviewService:
             "user_vote": current_state
         }
 
-def get_pending(self) -> list[Review]:
+    def get_pending(self) -> list[Review]:
         return self.repo.get_pending()
     
     def approve(self, review_id: int) -> Review:
