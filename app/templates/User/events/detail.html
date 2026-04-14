@@ -843,7 +843,7 @@
       </div>
 
       <div class="album-list" id="albumList">
-        {% for album in albums %}
+        {% for album in user_albums %}
         {% set in_album = event.id in album.events | map(attribute='id') | list %}
         <div class="album-row {% if in_album %}selected{% endif %}" data-album-id="{{ album.id }}"
           data-event-id="{{ event.id }}" data-in-album="{{ 'true' if in_album else 'false' }}"
@@ -1111,35 +1111,37 @@
     }
 
     const description = document.getElementById('newAlbumDesc').value.trim();
-    const evtId = {{ event.id }
-  };
+    const evtId = {{ event.id }};
 
-  try {
-    const body = new URLSearchParams({ name, description });
-    const res = await fetch('/albums/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: body.toString()
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      showToast(`Album "${data.name}" created!`);
-      await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
+    try {
+      const body = new URLSearchParams({ name, description });
+      const res = await fetch('/albums/create', {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 
+          'Content-Type': 'application/x-www-form-urlencoded', 
+          'X-Requested-With': 'XMLHttpRequest' 
+        },
+        body: body.toString()
       });
-      setTimeout(() => window.location.reload(), 500);
-    } else {
-      const err = await res.json();
-      showToast(err.detail || 'Failed to create album', true);
+
+      if (res.ok) {
+        const data = await res.json();
+        showToast(`Album "${data.name}" created!`);
+        
+        await fetch(`/albums/${data.album_id}/add-event/${evtId}`, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        
+        setTimeout(() => window.location.reload(), 500);
+      } else {
+        const err = await res.json();
+        showToast(err.detail || 'Failed to create album', true);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to create album', true);
     }
-  } catch (err) {
-    showToast('Failed to create album', true);
-  }
   }
 
   let _toastTimeout;
