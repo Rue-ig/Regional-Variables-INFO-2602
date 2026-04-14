@@ -185,12 +185,17 @@ async def submit_report(
         return JSONResponse({"detail": "Reason is required"}, status_code=422)
 
     report = Report(
-        reporter_id=user.id,
-        item_type=item_type,
-        item_id=item_id,
+        user_id=user.id,
         reason=reason,
         details=details,
     )
+    
+    if item_type == "photo":
+        report.photo_id = item_id
+        
+    elif item_type == "review":
+        report.review_id = item_id
+        
     db.add(report)
     db.commit()
 
