@@ -880,45 +880,63 @@ document.querySelectorAll('.playlist-checkbox').forEach(checkbox => {
 }
 
   async function createNewAlbum() {
-    const name = document.getElementById('newAlbumName').value.trim();
-    if (!name) {
-      showToast('Please enter an album name', true);
-      return;
-    }
+  const name = document.getElementById('newAlbumName').value.trim();
+  if (!name) {
+    showToast('Please enter an album name', true);
+    return;
+  }
 
-    const description = document.getElementById('newAlbumDesc').value.trim();
+  const description = document.getElementById('newAlbumDesc').value.trim();
 
-    try {
-      const formData = new URLSearchParams();
-      formData.append('name', name);
-      formData.append('description', description);
+  try {
+    const formData = new URLSearchParams();
+    formData.append('name', name);
+    formData.append('description', description);
 
-      const response = await fetch('/albums/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: formData.toString()
+    const response = await fetch('/albums/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: formData.toString()
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      const list = document.getElementById('existingPlaylists');
+      const empty = list.querySelector('p');
+      if (empty) empty.remove();
+
+      const item = document.createElement('div');
+      item.className = 'playlist-item';
+      item.dataset.albumId = data.album_id;
+      item.setAttribute('onclick', 'togglePlaylist(this)');
+      item.innerHTML = `
+        <input type="checkbox" class="playlist-checkbox" onclick="event.stopPropagation()">
+        <div class="playlist-info">
+          <div class="playlist-name">${data.name}</div>
+          <div class="playlist-count">0 events</div>
+        </div>
+      `;
+
+      item.querySelector('.playlist-checkbox').addEventListener('change', function () {
+        toggleAlbum(parseInt(data.album_id), currentEventId, this.checked);
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        showToast(`Created "${data.name}"`);
-        setTimeout(() => window.location.reload(), 500);
-      }
-      
-      else {
-        const error = await response.json();
-        showToast(error.detail || 'Failed to create album', true);
-      }
+      list.appendChild(item);
+      hideNewAlbumForm();
+      showToast(`Created "${data.name}"`);
+    } else {
+      const error = await response.json();
+      showToast(error.detail || 'Failed to create album', true);
     }
-    
-    catch (error) {
-      console.error('Error:', error);
-      showToast('Failed to create album', true);
-    }
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Failed to create album', true);
   }
+}
 
   function updateEventCount(albumId, delta) {
     const playlistItem = document.querySelector(`.playlist-item[data-album-id="${albumId}"]`);
