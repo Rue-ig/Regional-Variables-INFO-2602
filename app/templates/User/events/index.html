@@ -4,10 +4,211 @@
 {% block title %}Events – Caribbean Events{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="/static/css/events.css">
 {% endblock %}
 
+
 {% block subpage_content %}
+<style>
+  /* =========================
+     EVENT CARDS – MODERN UI
+     ========================= */
+
+  .event-card {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    background: #fff;
+    transition: all 0.3s ease;
+  }
+
+  /* Hover lift */
+  .event-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+  }
+
+  /* ================= IMAGE ================= */
+
+  .event-img {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .event-card:hover .event-img {
+    transform: scale(1.12);
+  }
+
+  /* Gradient overlay on image */
+  .event-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+  .event-card:hover::before {
+    opacity: 1;
+  }
+
+  /* ================= BODY ================= */
+
+  .event-card .card-body {
+    position: relative;
+    z-index: 2;
+    padding: 1rem;
+  }
+
+  /* Title */
+  .card-title a {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #212529;
+    transition: all 0.2s ease;
+  }
+
+  .event-card:hover .card-title a {
+    background: linear-gradient(135deg, #FB5607, #EEB902);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Text */
+  .event-card .card-text {
+    font-size: 0.9rem;
+  }
+
+  /* ================= BADGES ================= */
+
+  .badge {
+    border-radius: 999px;
+    padding: 0.35em 0.7em;
+    font-size: 0.75rem;
+    font-weight: 500;
+    backdrop-filter: blur(6px);
+  }
+
+  .badge.bg-info {
+    background: linear-gradient(135deg, #053225, #FB5607) !important;
+    color: white !important;
+  }
+
+  .badge.bg-secondary {
+    background: linear-gradient(135deg, #FB5607, #EEB902) !important;
+    color: white !important;
+  }
+
+  /* ================= PRICE ================= */
+
+  .event-card .fw-bold {
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+  }
+
+  /* ================= PLACEHOLDER ================= */
+
+  .event-img-placeholder {
+    height: 200px;
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .event-icon {
+    font-size: 3rem;
+    opacity: 0.6;
+  }
+
+  /* ================= BONUS: GLOW BORDER ================= */
+
+.event-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 1px; /* thickness of border */
+  background: #FB5607;
+
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+  .event-card:hover::after {
+    opacity: 1;
+  }
+.event-card:hover {
+  box-shadow: 0 10px 25px #71706e;
+}
+.btn-filter {
+  background: linear-gradient(135deg, #FB5607, #EEB902);
+  color: #fff;
+  border: none;
+
+  padding: 10px 16px;
+  border-radius: 12px;
+
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+
+  cursor: pointer;
+
+  position: relative;
+  overflow: hidden;
+
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+}
+
+/* hover lift + glow */
+.btn-filter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(251, 86, 7, 0.25);
+  filter: brightness(1.05);
+}
+
+/* active press effect */
+.btn-filter:active {
+  transform: translateY(0px) scale(0.98);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* subtle shine sweep */
+.btn-filter::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+
+  transition: left 0.6s ease;
+}
+
+.btn-filter:hover::before {
+  left: 120%;
+}
+</style>
+
 <div class="container-fluid {% if not user %}mt-5{% endif %}">
   <div class="page-header d-flex justify-content-between align-items-center mb-4">
     <h1>Explore Events</h1>
@@ -40,7 +241,7 @@
         </select>
       </div>
       <div class="col-md-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary w-100">Filter</button>
+        <button type="submit" class="btn-filter w-100">Filter</button>
         <a href="/events" class="btn btn-light">Clear</a>
       </div>
     </div>
@@ -52,31 +253,59 @@
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for event in events %}
     <div class="col">
-      <div class="card h-100 event-card shadow-sm">
+
+      <!-- 🔥 MAIN CARD -->
+      <div class="event-card h-100">
+
         {% if event.image_url %}
-        <img src="{{ event.image_url }}" class="card-img-top" alt="{{ event.title }}"
-          style="height: 200px; object-fit: cover;">
+        <img src="{{ event.image_url }}" class="event-img" alt="{{ event.title }}">
         {% else %}
+<<<<<<< HEAD
+        <div class="event-img-placeholder">
+          <span class="event-icon">🎉</span>
+        </div>
+=======
         <img src="https://placehold.net/{{ event.random_num() }}.png" class="card-img-top"
             style="height:200px;object-fit:cover;" alt="{{ event.title }}">
+>>>>>>> main
         {% endif %}
+
+        <!-- 🔥 BODY -->
         <div class="card-body">
-          <div class="mb-2">
-            <span class="badge bg-info text-dark">{{ event.island.value }}</span>
+
+          <!-- Badges -->
+          <div class="mb-2 d-flex gap-1">
+            <span class="badge bg-info">{{ event.island.value }}</span>
             <span class="badge bg-secondary">{{ event.category.value }}</span>
           </div>
-          <h5 class="card-title"><a href="/events/{{ event.id }}" class="text-decoration-none text-dark stretched-link">{{ event.title
-              }}</a></h5>
-          <p class="card-text small text-muted mb-1">📍 {{ event.venue }}</p>
-          <p class="card-text small mb-2">📅 {{ event.date.strftime('%a, %d %b %Y') }}</p>
-          <p class="fw-bold text-primary">
-            {% if not event.price %}Free{% else %}TT${{ "%.2f"|format(event.price) }}{% endif %}
+
+          <!-- Title -->
+          <h5 class="card-title">
+            <a href="/events/{{ event.id }}" class="text-decoration-none">
+              {{ event.title }}
+            </a>
+          </h5>
+
+          <!-- Info -->
+          <p class="card-text text-muted mb-1">📍 {{ event.venue }}</p>
+          <p class="card-text mb-2">📅 {{ event.date.strftime('%a, %d %b %Y') }}</p>
+
+          <!-- Price -->
+          <p class="fw-bold">
+            {% if event.price is none %}
+              Free
+            {% else %}
+              TT${{ "%.2f"|format(event.price) }}
+            {% endif %}
           </p>
+
         </div>
       </div>
+
     </div>
     {% endfor %}
   </div>
+
   {% else %}
   <div class="text-center py-5">
     <p class="lead">No events found matching your filters.</p>
