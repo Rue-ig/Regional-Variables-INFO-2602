@@ -6,8 +6,11 @@
 {% block subpage_content %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Flagged Content Reports</h1>
-        <span class="badge bg-danger">{{ reports|length }} Active Reports</span>
+        <div>
+            <h1 class="h3 mb-0">Flagged Content Reports</h1>
+            <p class="text-muted small">Review and moderate community-reported content.</p>
+        </div>
+        <span class="badge bg-danger px-3 py-2">{{ reports|length }} Active Reports</span>
     </div>
 
     <div class="card shadow-sm border-0">
@@ -15,55 +18,83 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th>Type</th>
+                        <th class="ps-4">Type</th>
                         <th>Reason</th>
                         <th>Reporter Details</th>
                         <th>Target Content</th>
-                        <th>Actions</th>
+                        <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for report in reports %}
                     <tr>
-                        <td>
+                        <td class="ps-4">
                             {% if report.photo_id %}
-                            <span class="badge bg-info">Photo</span>
+                            <div class="d-flex align-items-center">
+                                <span class="material-symbols-outlined text-info me-1 fs-5">image</span>
+                                <span class="badge bg-info">Photo</span>
+                            </div>
                             {% else %}
-                            <span class="badge bg-warning text-dark">Review</span>
-                            {% endif %}
-                        </td>
-                        <td><strong class="text-danger">{{ report.reason }}</strong></td>
-                        <td>
-                            <small class="d-block text-muted">{{ report.created_at.strftime('%d %b, %H:%M') }}</small>
-                            <p class="mb-0 small">{{ report.details or 'No additional details provided.' }}</p>
-                        </td>
-                        <td>
-                            {% if report.photo_id %}
-                            <a href="/events/{{ report.photo.event_id }}" target="_blank"
-                                class="btn btn-sm btn-outline-secondary">View Event</a>
-                            {% else %}
-                            <a href="/events/{{ report.review.event_id }}" target="_blank"
-                                class="btn btn-sm btn-outline-secondary">View Event</a>
+                            <div class="d-flex align-items-center">
+                                <span class="material-symbols-outlined text-warning me-1 fs-5">rate_review</span>
+                                <span class="badge bg-warning text-dark">Review</span>
+                            </div>
                             {% endif %}
                         </td>
                         <td>
-                            <div class="d-flex gap-2">
+                            <strong class="text-danger d-block">{{ report.reason }}</strong>
+                            {% if report.details %}
+                            <small class="text-muted">{{ report.details | truncate(100) }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="d-block text-muted fw-bold">
+                                {{ report.created_at.strftime('%d %b, %H:%M') }}
+                            </small>
+                            <p class="mb-0 small text-muted">User ID: {{ report.user_id }}</p>
+                        </td>
+                        <td>
+                            {% if report.photo_id %}
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ report.photo.url }}" 
+                                         class="rounded me-2 border" 
+                                         style="width: 48px; height: 48px; object-fit: cover;"
+                                         onerror="this.src='/static/img/placeholder.png'">
+                                    <a href="/events/{{ report.photo.event_id }}" target="_blank" 
+                                       class="btn btn-sm btn-outline-secondary">View Event</a>
+                                </div>
+                            {% elif report.review_id %}
+                                <div class="mb-1 p-2 bg-light rounded border-start border-3 border-warning" style="max-width: 250px;">
+                                    <small class="text-muted italic">"{{ report.review.content | truncate(60) }}"</small>
+                                </div>
+                                <a href="/events/{{ report.review.event_id }}" target="_blank" 
+                                   class="btn btn-sm btn-outline-secondary">View Context</a>
+                            {% else %}
+                                <span class="text-muted small">Content no longer exists</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
                                 <form action="/admin/reports/{{ report.id }}/dismiss" method="POST">
-                                    <button class="btn btn-sm btn-light text-muted"
-                                        title="Dismiss Report">Dismiss</button>
+                                    <button class="btn btn-sm btn-light text-muted border" 
+                                            title="Dismiss Report">Dismiss</button>
                                 </form>
 
                                 <form action="/admin/reports/{{ report.id }}/delete-content" method="POST"
-                                    onsubmit="return confirm('This will permanently delete the flagged content. Proceed?');">
+                                      onsubmit="return confirm('This will permanently delete the flagged content. Proceed?');">
                                     <button class="btn btn-sm btn-danger">Delete Content</button>
                                 </form>
                             </div>
                         </td>
                     </tr>
                     {% endfor %}
+
                     {% if not reports %}
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">No flagged content reported.</td>
+                        <td colspan="5" class="text-center py-5">
+                            <span class="material-symbols-outlined display-4 text-muted opacity-25">verified_user</span>
+                            <p class="text-muted mt-2">No flagged content reported. All clean!</p>
+                        </td>
                     </tr>
                     {% endif %}
                 </tbody>

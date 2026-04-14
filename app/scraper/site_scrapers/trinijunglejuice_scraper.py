@@ -1,195 +1,151 @@
 """
-trinijunglejuice.com/events scraper — uses Playwright (required, site is a React SPA).
-Playwright renders the JavaScript and gives us the real DOM.
-
+trinijunglejuice.com scraper.
 """
-
-import logging, re, sys, os
-from datetime import datetime
+import logging, requests
+from datetime import datetime, timezone
 from typing import Optional
 from app.database import get_cli_session
 from app.services.scraper_service import ScraperService
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 logger = logging.getLogger(__name__)
 
-EVENTS_URL = "https://trinijunglejuice.com/events"
-REQUEST_DELAY = 2.0
+API_URL = "https://staging.trinijunglejuice.com/api/events"
 
+CATEGORY_MAP = {
+    "Carnival": "Carnival",
+    "Soca / Calypso": "Music",
+    "Reggae / Dancehall": "Music",
+    "DJ Party": "Nightlife",
+    "All Inclusive (Food & Drink)": "Food & Drink",
+    "Sports": "Sports",
+    "Culture": "Culture & Arts",
+}
 
-def _parse_date(text: str) -> Optional[datetime]:
-    text = text.strip()
+def _detect_island(location: dict) -> str:
+    city    = (location.get("city") or "")
+    state   = (location.get("state") or "")
+    country = (location.get("country") or "")
+    address = (location.get("address") or "")
+    text    = f"{city} {state} {country} {address}".lower().replace("-", " ")
     
-    for fmt in [
-        "%B %d, %Y", "%b %d, %Y", "%d %B %Y", "%d %b %Y",
-        "%A, %B %d, %Y", "%A, %b %d, %Y",
-        "%B %d, %Y %I:%M %p", "%b %d, %Y %I:%M %p",
-        "%Y-%m-%d", "%Y-%m-%dT%H:%M:%S",
-    ]:
-        try:
-            return datetime.strptime(text, fmt)
-        
-        except ValueError:
-            continue
-        
-    return None
-
-
-def _detect_island(text: str) -> str:
-    lower = text.lower()
-    for kw, island in {
-        "tobago": "Tobago", "trinidad": "Trinidad",
-        "barbados": "Barbados", "jamaica": "Jamaica",
-        "st. lucia": "St. Lucia", "saint lucia": "St. Lucia",
-        "grenada": "Grenada", "antigua": "Antigua",
-        "bahamas": "Bahamas", "puerto rico": "Puerto Rico",
-        "martinique": "Martinique", "guadeloupe": "Guadeloupe",
-    }.items():
-        if kw in lower:
+    mapping = {
+        "port of spain":  "Trinidad",
+        "chaguaramas":    "Trinidad",
+        "san fernando":   "Trinidad",
+        "scarborough":    "Tobago",
+        "pigeon point":   "Tobago",
+        "bridgetown":     "Barbados",
+        "kingston":       "Jamaica",
+        "montego":        "Jamaica",
+        "nassau":         "Bahamas",
+        "georgetown":     "Guyana",
+        "tobago":         "Tobago",
+        "trinidad":       "Trinidad",
+        "barbados":       "Barbados",
+        "jamaica":        "Jamaica",
+        "antigua":        "Antigua",
+        "saint lucia":    "St. Lucia",
+        "st. lucia":      "St. Lucia",
+        "grenada":        "Grenada",
+        "st. vincent":    "St. Vincent",
+        "dominica":       "Dominica",
+        "bahamas":        "Bahamas",
+        "cayman":         "Cayman Islands",
+        "puerto rico":    "Puerto Rico",
+        "martinique":     "Martinique",
+        "guadeloupe":     "Guadeloupe",
+        "curacao":        "Curaçao",
+        "curaçao":        "Curaçao",
+        "aruba":          "Aruba",
+        "guyana":         "Guyana",
+    }
+    
+    for kw, island in mapping.items():
+        if kw in text:
             return island
-        
-    return "Trinidad"
+            
+    return "Other"
 
+def _map_category(categories: list) -> str:
+    for cat in categories:
+        title = cat.get("title", "")
+        if title in CATEGORY_MAP:
+            return CATEGORY_MAP[title]
+    return "Other"
 
 class TJJScraper:
     SOURCE_NAME = "trinijunglejuice.com"
 
     def scrape(self) -> list[dict]:
         try:
-            from playwright.sync_api import sync_playwright
-            
-        except ImportError:
-            raise RuntimeError(
-                "Playwright not installed or browsers not set up.\n"
-                "Run: pip install playwright\n"
-                "Then: playwright install chromium"
+            resp = requests.get(
+                API_URL,
+                params={"page": 1, "items": 10000, "type": "featured"},
+                headers={"User-Agent": "CaribbeanEventsBot/1.0"},
+                timeout=15,
             )
-
-        records = []
-
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-
-            logger.info(f"Loading {EVENTS_URL}")
-            page.goto(EVENTS_URL, wait_until="networkidle", timeout=30000)
-
-            try:
-                page.wait_for_selector(
-                    "a[href*='/events/'], .event-card, article, [class*='event']",
-                    timeout=15000
-                )
-                
-            except Exception:
-                logger.warning("Timed out waiting for event cards — trying to parse anyway")
-
-            for _ in range(5):
-                page.evaluate("window.scrollBy(0, window.innerHeight)")
-                page.wait_for_timeout(800)
-
-            content = page.content()
-            browser.close()
-
-        try:
-            from bs4 import BeautifulSoup
-            
-        except ImportError:
-            raise RuntimeError("Run: pip install beautifulsoup4")
-
-        soup = BeautifulSoup(content, "html.parser")
-
-        cards = (
-            soup.select("a[href*='/events/']") or
-            soup.select("[class*='EventCard'], [class*='event-card'], [class*='eventCard']") or
-            soup.select("article") or
-            []
-        )
-
-        if not cards:
-            logger.warning("No event cards found on TJJ — inspect the rendered HTML and update selectors")
+            resp.raise_for_status()
+            events = resp.json().get("data", [])
+        except Exception as e:
+            logger.error(f"TJJ API error: {e}")
             return []
 
-        for card in cards:
+        records = []
+        for ev in events:
             try:
-                title_el = card.select_one("h2, h3, h4, [class*='title'], [class*='Title']")
-                title = title_el.get_text(strip=True) if title_el else card.get_text(strip=True)[:80]
+                title = (ev.get("title") or "").strip()
                 if not title:
                     continue
 
-                # Date
-                date = None
-                date_el = card.select_one("time, [class*='date'], [class*='Date']")
-                if date_el:
-                    dt_attr = date_el.get("datetime", "")
-                    if dt_attr:
-                        try:
-                            date = datetime.fromisoformat(dt_attr)
-                            
-                        except ValueError:
-                            date = _parse_date(date_el.get_text(strip=True))
-                    else:
-                        date = _parse_date(date_el.get_text(strip=True))
-
-                if not date:
-                    full_text = card.get_text(separator=" ")
-                    date_patterns = [
-                        r"([A-Za-z]+ \d{1,2},? \d{4})",
-                        r"(\d{1,2} [A-Za-z]+ \d{4})",
-                    ]
-                    
-                    for pattern in date_patterns:
-                        m = re.search(pattern, full_text)
-                        if m:
-                            date = _parse_date(m.group(1))
-                            if date:
-                                break
-
-                if not date:
+                start_raw = ev.get("start_datetime")
+                if not start_raw:
                     continue
+                date = datetime.fromisoformat(start_raw.replace("Z", "+00:00")).replace(tzinfo=None)
 
-                href = card.get("href", "") if card.name == "a" else ""
-                if not href:
-                    link_el = card.find("a")
-                    href = link_el.get("href", "") if link_el else ""
-                source_url = (href if href.startswith("http") else "https://trinijunglejuice.com" + href) if href else None
+                end_raw = ev.get("end_datetime")
+                end_date = None
+                if end_raw:
+                    try:
+                        end_date = datetime.fromisoformat(end_raw.replace("Z", "+00:00")).replace(tzinfo=None)
+                    except Exception:
+                        pass
 
-                venue_el = card.select_one("[class*='venue'], [class*='location'], [class*='Venue']")
-                venue = venue_el.get_text(strip=True) if venue_el else "TBA"
+                location = ev.get("location") or {}
+                island   = _detect_island(location)
 
-                island = _detect_island(card.get_text())
+                if island == "Other":
+                    non_caribbean = ["united states", "canada", "united kingdom"]
+                    country = (location.get("country") or "").lower()
+                    if any(nc in country for nc in non_caribbean):
+                        continue
 
-                img = card.find("img")
-                image_url = None
-                if img:
-                    image_url = img.get("src") or img.get("data-src")
+                price_raw = ev.get("cost_per_person")
+                price: Optional[float] = None
+                if price_raw:
+                    try:
+                        price = float(price_raw) or None
+                    except (ValueError, TypeError):
+                        pass
 
                 records.append({
-                    "title": title,
-                    "description": "",
-                    "island": island,
-                    "venue": venue,
-                    "date": date,
-                    "end_date": None,
-                    "price": None,
-                    "category": "Other",
-                    "source_url": source_url,
-                    "image_url": image_url,
+                    "title":       title,
+                    "description": (ev.get("description") or "")[:2000],
+                    "island":      island,
+                    "venue":       location.get("address") or location.get("city") or "TBA",
+                    "date":        date,
+                    "end_date":    end_date,
+                    "price":       price,
+                    "category":   _map_category(ev.get("event_categories") or []),
+                    "source_url":  ev.get("registration_url") or f"https://trinijunglejuice.com/events/{ev.get('slug','')}",
+                    "image_url":   ev.get("poster_url"),
                 })
-                
             except Exception as e:
-                logger.debug(f"TJJ: skipping card: {e}")
+                logger.debug(f"TJJ: skipping event: {e}")
 
-        logger.info(f"TJJ: scraped {len(records)} events")
-        
+        logger.info(f"TJJ: {len(records)} events scraped")
         return records
 
     def run(self, auto_publish: bool = False) -> dict:
         records = self.scrape()
         with get_cli_session() as session:
             return ScraperService(session).import_from_records(records, auto_publish=auto_publish)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    result = TJJScraper().run()
-    print(result)

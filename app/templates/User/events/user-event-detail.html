@@ -1,0 +1,565 @@
+{# PATH: app/templates/User/events/user-event-detail.html #}
+{% extends "authenticated-base.html" %}
+{% block title %}{{ event.title }} – My Events{% endblock %}
+{% block additional_styles %}
+<link rel="stylesheet" href="/static/css/events.css">
+<style>
+  .sticky-top { z-index: 10 !important; }
+
+  .event-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    font-size: 14px;
+    border: 1.5px solid transparent;
+  }
+
+  .event-status-bar.draft {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #64748b;
+  }
+
+  .event-status-bar.pending {
+    background: #fffbeb;
+    border-color: #fcd34d;
+    color: #92400e;
+  }
+
+  .event-status-bar.published {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+  }
+
+  .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-dot.draft { background: #94a3b8; }
+  .status-dot.pending {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245,158,11,.2);
+    animation: pulse 2s infinite;
+  }
+  .status-dot.published { background: #22c55e; }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
+    50% { box-shadow: 0 0 0 6px rgba(245,158,11,.08); }
+  }
+
+  .status-label-text { flex: 1; }
+
+  .status-hint {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: .75;
+  }
+
+  .action-card {
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(15,23,42,.09);
+    overflow: hidden;
+  }
+
+  .action-card .card-body { padding: 1.5rem; }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 0;
+    font-weight: 700;
+    font-size: 14px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity .15s, transform .15s;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+
+  .btn-edit:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+    color: #fff;
+  }
+
+  .btn-delete {
+    background: #fff;
+    color: #dc2626;
+    border: 1.5px solid #fecaca;
+    border-radius: 10px;
+    padding: 9px 0;
+    font-weight: 700;
+    font-size: 14px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all .15s;
+    cursor: pointer;
+  }
+
+  .btn-delete:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+  }
+
+  .meta-row:last-child { border-bottom: none; }
+
+  .meta-icon {
+    font-size: 18px;
+    color: #94a3b8;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .meta-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #94a3b8;
+    margin-bottom: 2px;
+  }
+
+  .meta-value {
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .breadcrumb-nav {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .breadcrumb-nav a {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .breadcrumb-nav a:hover { text-decoration: underline; }
+
+  .info-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+
+  .description-box {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.7;
+    border: 1px solid #f1f5f9;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title .material-symbols-outlined {
+    font-size: 18px;
+    color: #6366f1;
+  }
+
+  /* Delete confirm modal */
+  #deleteModalBackdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  #deleteModalBackdrop.open { display: flex; }
+
+  #deleteModal {
+    background: #fff;
+    border-radius: 20px;
+    width: min(400px, 92vw);
+    box-shadow: 0 24px 64px rgba(15,23,42,.22);
+    animation: modalIn .2s cubic-bezier(.34,1.56,.64,1);
+    overflow: hidden;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .delete-modal-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .delete-modal-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fef2f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .delete-modal-icon .material-symbols-outlined {
+    color: #dc2626;
+    font-size: 22px;
+  }
+
+  .delete-modal-body { padding: 12px 24px 20px; }
+
+  .delete-modal-body h4 {
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+    font-size: 1.05rem;
+  }
+
+  .delete-modal-body p {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 0;
+  }
+
+  .delete-modal-footer {
+    padding: 0 24px 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-cancel-delete {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .btn-cancel-delete:hover { background: #f8fafc; }
+
+  .btn-confirm-delete {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #dc2626;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+
+  .btn-confirm-delete:hover { opacity: .88; }
+</style>
+{% endblock %}
+
+{% block subpage_content %}
+<div class="container-fluid">
+
+  <!-- {# Breadcrumb #}
+  <div class="breadcrumb-nav">
+    <a href="/user/dashboard">Dashboard</a>
+    <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
+    <a href="/user/events">My Events</a>
+    <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
+    <span style="color:#1e293b;font-weight:600;">{{ event.title }}</span>
+  </div> -->
+
+  <div class="row">
+
+    {# ── Left column ── #}
+    <div class="col-lg-8">
+
+      {# Status banner #}
+      <div class="event-status-bar {{ event.status.value }}">
+        <span class="status-dot {{ event.status.value }}"></span>
+        <div class="status-label-text">
+          {% if event.status.value == 'draft' %}
+            <strong>Draft</strong>
+            <span class="status-hint">— This event is not yet submitted for review.</span>
+          {% elif event.status.value == 'pending' %}
+            <strong>Pending Review</strong>
+            <span class="status-hint">— Our team is reviewing your event. You'll hear back soon.</span>
+          {% elif event.status.value == 'published' %}
+            <strong>Published</strong>
+            <span class="status-hint">— Your event is live and visible to the public.</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Badges #}
+      <div class="mb-3">
+        <span class="badge bg-info">{{ event.island.value }}</span>
+        <span class="badge bg-secondary">{{ event.category.value }}</span>
+      </div>
+
+      <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
+
+      {# Event image #}
+      {% if event.image_url %}
+      <img src="{{ event.image_url }}" class="img-fluid rounded-4 mb-4 w-100 shadow-sm"
+           style="max-height:400px;object-fit:cover;" alt="{{ event.title }}">
+      {% else %}
+      <div class="rounded-4 mb-4 w-100 d-flex align-items-center justify-content-center"
+           style="height:220px;background:#f1f5f9;border:2px dashed #e2e8f0;">
+        <div class="text-center text-muted">
+          <span class="material-symbols-outlined" style="font-size:48px;opacity:.3;">image</span>
+          <p class="mt-2 small mb-0">No cover image uploaded</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Description #}
+      <div class="mb-5">
+        <div class="section-title">
+          <span class="material-symbols-outlined">article</span>
+          About this event
+        </div>
+        <div class="description-box">
+          {{ event.description }}
+        </div>
+      </div>
+
+      {# Info pills row #}
+      <div class="mb-5">
+        <div class="section-title">
+          <span class="material-symbols-outlined">info</span>
+          Event Info
+        </div>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">location_on</span>
+              <div>
+                <div class="meta-label">Venue</div>
+                <div class="meta-value">{{ event.venue }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">calendar_today</span>
+              <div>
+                <div class="meta-label">Date</div>
+                <div class="meta-value">{{ event.date.strftime('%A, %d %B %Y') }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">schedule</span>
+              <div>
+                <div class="meta-label">Start Time</div>
+                <div class="meta-value">{{ event.date.strftime('%I:%M %p') }}</div>
+              </div>
+            </div>
+          </div>
+          {% if event.end_date %}
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">event_available</span>
+              <div>
+                <div class="meta-label">End Time</div>
+                <div class="meta-value">{{ event.end_date.strftime('%I:%M %p') }}</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">payments</span>
+              <div>
+                <div class="meta-label">Price</div>
+                <div class="meta-value">
+                  {% if event.price %}${{ "%.2f"|format(event.price) }}{% else %}Free{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% if event.source_url %}
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">link</span>
+              <div>
+                <div class="meta-label">Website</div>
+                <div class="meta-value">
+                  <a href="{{ event.source_url }}" target="_blank" class="text-primary" style="word-break:break-all;">
+                    {{ event.source_url }}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">add_circle</span>
+              <div>
+                <div class="meta-label">Submitted</div>
+                <div class="meta-value">{{ event.created_at.strftime('%d %b %Y') }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="meta-row">
+              <span class="material-symbols-outlined meta-icon">edit_calendar</span>
+              <div>
+                <div class="meta-label">Last Updated</div>
+                <div class="meta-value">{{ event.updated_at.strftime('%d %b %Y') }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {# ── Right column ── #}
+    <div class="col-lg-4">
+      <div class="action-card card sticky-top" style="top:20px;">
+        <div class="card-body">
+
+          <h5 class="card-title mb-1">Manage Event</h5>
+          <p class="text-muted small mb-3">Edit your event details or remove it permanently.</p>
+
+          <a href="#" class="btn-edit">
+            <span class="material-symbols-outlined" style="font-size:16px;">edit</span>
+            Edit Event
+          </a>
+
+          <button class="btn-delete" onclick="openDeleteModal()">
+            <span class="material-symbols-outlined" style="font-size:16px;">delete</span>
+            Delete Event
+          </button>
+
+          <hr class="my-3 opacity-25">
+
+          <div class="meta-label mb-2" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;">
+            Current Status
+          </div>
+          <div class="event-status-bar {{ event.status.value }} mb-0" style="padding:10px 14px;margin-bottom:0!important;">
+            <span class="status-dot {{ event.status.value }}"></span>
+            <span style="font-size:13px;">
+              {% if event.status.value == 'draft' %}Draft{% elif event.status.value == 'pending' %}Pending Review{% elif event.status.value == 'published' %}Published{% endif %}
+            </span>
+          </div>
+
+          {% if event.status.value == 'published' %}
+          <hr class="my-3 opacity-25">
+          <a href="/events/{{ event.id }}" class="btn btn-outline-primary w-100" target="_blank">
+            <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">open_in_new</span>
+            View Public Page
+          </a>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{# ── Delete Confirm Modal ── #}
+<div id="deleteModalBackdrop">
+  <div id="deleteModal">
+    <div class="delete-modal-header">
+      <div class="delete-modal-icon">
+        <span class="material-symbols-outlined">delete_forever</span>
+      </div>
+      <div>
+        <div style="font-weight:700;color:#0f172a;font-size:1rem;">Delete Event</div>
+        <div style="font-size:13px;color:#64748b;">This action cannot be undone.</div>
+      </div>
+    </div>
+    <div class="delete-modal-body">
+      <p>Are you sure you want to delete <strong>"{{ event.title }}"</strong>? It will be permanently removed.</p>
+    </div>
+    <div class="delete-modal-footer">
+      <button class="btn-cancel-delete" onclick="closeDeleteModal()">Cancel</button>
+      <form action="#" method="POST" style="flex:1;">
+        <button type="submit" class="btn-confirm-delete w-100">Yes, Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block subpage_scripts %}
+<script>
+  function openDeleteModal() {
+    document.getElementById('deleteModalBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModalBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('deleteModalBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDeleteModal();
+  });
+</script>
+{% endblock %}

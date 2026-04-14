@@ -33,10 +33,14 @@ from . import (
     events,
     event_detail,
     reviews,
+    pages,
     photos,
     bookmarks,
+    albums,
     api_bookmarks,
     admin_events,
     admin_content,
     admin_import,
+    admin_moderation,
+    submissions
 )

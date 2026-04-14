@@ -1,9 +1,12 @@
 # PATH: app/routers/reviews.py
-from fastapi import Request, Form
-from fastapi.responses import RedirectResponse
+from fastapi import Request, Form, HTTPException
+from fastapi.responses import RedirectResponse, JSONResponse
+from sqlmodel import select
 from app.dependencies import SessionDep, AuthDep
-from app.repositories.content import ReviewRepository
+from app.repositories.content import ReviewRepository, ReviewVoteRepository
 from app.services.content_service import ReviewService
+from app.models.review_vote import ReviewVote
+from app.models.review import Review
 from app.utilities.flash import flash
 from . import router
 
@@ -18,11 +21,14 @@ async def submit_review(
 ):
     try:
         ReviewService(ReviewRepository(db)).submit(event_id, user.id, rating, body)
-        flash(request, "Review submitted and awaiting approval.", "success")
+        flash(request, "Review submitted!", "success")
         
-    except Exception as e:
-        flash(request, str(e), "error")
+    except HTTPException as e:
+        flash(request, e.detail, "error")
         
+    except Exception:
+        flash(request, "An error occurred while submitting your review.", "error")
+
     return RedirectResponse(url=f"/events/{event_id}", status_code=303)
 
 @router.post("/reviews/{review_id}/delete")
@@ -30,23 +36,62 @@ async def delete_review(
     request: Request,
     review_id: int,
     db: SessionDep,
-    user: AuthDep
+    user: AuthDep,
 ):
-    repo = ReviewRepository(db)
-    review = repo.get_by_id(review_id)
-    
+    service = ReviewService(ReviewRepository(db))
+    review = service.repo.get_by_id(review_id)
+
     if not review:
         flash(request, "Review not found.", "error")
-        
         return RedirectResponse(url="/admin/content", status_code=303)
 
     if user.role == "admin" or review.user_id == user.id:
-        repo.delete(review)
+        service.delete(review_id)
         flash(request, "Review removed.", "success")
         
     else:
         flash(request, "Access denied.", "error")
 
-    referer = request.headers.get("referer", "/")
+    return RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
+
+@router.post("/reviews/{review_id}/vote")
+async def vote_review(
+    request: Request,
+    review_id: int,
+    db: SessionDep,
+    user: AuthDep,
+    vote: str = Form(...)
+):
+    review = db.get(Review, review_id)
+    if not review:
+        return JSONResponse({"detail": "Review not found"}, status_code=404)
+        
+    existing = db.exec(
+        select(ReviewVote).where(
+            ReviewVote.review_id == review_id,
+            ReviewVote.user_id == user.id
+        )
+    ).first()
     
-    return RedirectResponse(url=referer, status_code=303)
+    if vote == "none":
+        if existing:
+            db.delete(existing)
+            
+    elif vote in ["up", "down"]:
+        if existing:
+            existing.vote = vote
+            
+        else:
+            db.add(ReviewVote(user_id=user.id, review_id=review_id, vote=vote))
+            
+    db.commit()
+    
+    upvotes = len(db.exec(select(ReviewVote).where(ReviewVote.review_id == review_id, ReviewVote.vote == "up")).all())
+    downvotes = len(db.exec(select(ReviewVote).where(ReviewVote.review_id == review_id, ReviewVote.vote == "down")).all())
+    
+    review.upvotes = upvotes
+    review.downvotes = downvotes
+    db.add(review)
+    db.commit()
+    
+    return JSONResponse({"upvotes": upvotes, "downvotes": downvotes})

@@ -1,4 +1,5 @@
 # PATH: app/routers/admin_home.py
+import json
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from datetime import datetime, timedelta, timezone
@@ -11,61 +12,56 @@ from app.services.user_service import UserService
 from . import router, templates
 
 @router.get("/admin", response_class=HTMLResponse)
-async def admin_home_view(
-    request: Request,
-    user: AdminDep,
-    db: SessionDep
-):
+async def admin_home_view(request: Request, user: AdminDep, db: SessionDep):
     one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+    total_visitors = db.exec(
+        select(func.count(func.distinct(Visit.session_id)))
+    ).one()
 
     stats = {
         "total_events": db.exec(select(func.count()).select_from(Event)).one(),
-        "pending_photos": db.exec(select(func.count()).select_from(Photo).where(Photo.approved == False)).one(),
+        "total_visitors": total_visitors,
+        "pending_photos": db.exec(
+            select(func.count()).select_from(Photo).where(Photo.approved == False)
+        ).one(),
         "approved_this_week": db.exec(
             select(func.count()).select_from(Event).where(
-                Event.status == 'published', 
+                Event.status == 'published',
                 Event.updated_at >= one_week_ago
             )
         ).one(),
-        "site_visitors": db.exec(select(func.count()).select_from(Visit).where(Visit.timestamp >= one_week_ago)).one(),
+        "total_reports": 0,
         "pending_reviews": 0,
-        "new_events": 0
     }
-
-    daily_visits = db.exec(
-        select(
-            func.date(Visit.timestamp).label('date'),
-            func.count(Visit.id).label('count')
-        ).where(Visit.timestamp >= one_week_ago)
-         .group_by(func.date(Visit.timestamp))
-         .order_by('date')
-    ).all()
 
     chart_labels = []
     chart_data = []
-    
-    for row in daily_visits:
-        date_obj = datetime.strptime(row[0], '%Y-%m-%d') if isinstance(row[0], str) else row[0]
-        chart_labels.append(date_obj.strftime('%a'))
-        chart_data.append(row[1])
+    for i in range(6, -1, -1):
+        day = (datetime.now(timezone.utc) - timedelta(days=i)).date()
+        count = db.exec(
+            select(func.count(Visit.id)).where(
+                func.date(Visit.timestamp) == day
+            )
+        ).one()
+        
+        chart_labels.append(day.strftime('%a'))
+        chart_data.append(count or 0)
 
     return templates.TemplateResponse(
-        request=request, 
+        request=request,
         name="admin.html",
         context={
             "user": user,
             "stats": stats,
-            "chart_labels": chart_labels,
-            "chart_data": chart_data
+            "chart_labels": json.dumps(chart_labels),
+            "chart_data": json.dumps(chart_data),
         }
     )
 
+
 @router.get("/admin/users", response_class=HTMLResponse)
-async def admin_users_view(
-    request: Request,
-    user: AdminDep,
-    db: SessionDep
-):
+async def admin_users_view(request: Request, user: AdminDep, db: SessionDep):
     user_repo = UserRepository(db)
     user_service = UserService(user_repo)
     users = user_service.get_all_users()
@@ -73,8 +69,5 @@ async def admin_users_view(
     return templates.TemplateResponse(
         request=request,
         name="/Admin/users.html",
-        context={
-            "user": user,
-            "users": users
-        }
+        context={"user": user, "users": users}
     )

@@ -1,8 +1,6 @@
 {# PATH: app/templates/home.html #}
 {% extends "authenticated-base.html" if user else "base.html" %}
-
 {% block title %}Home{% endblock %}
-
 {% block additional_styles %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <style>
@@ -12,19 +10,19 @@
         overflow: visible;
         position: relative;
         z-index: 1;
+        margin-left: calc(-24px);
+        margin-right: calc(-24px);
+        margin-top: -24px;
     }
-
     .swiper {
         width: 100%;
         padding-top: 50px;
         padding-bottom: 80px;
         overflow: visible !important;
     }
-
     .swiper-wrapper {
         overflow: visible !important;
     }
-
     .swiper-slide {
         width: 320px;
         height: 500px;
@@ -36,29 +34,20 @@
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         z-index: 1;
     }
-
     .swiper-slide:hover {
         filter: brightness(1.02);
         transition: filter 0.2s ease;
     }
-
-    #content,
-    .page-body {
-        overflow-x: visible !important;
-    }
-
     .slide-card-top {
         position: relative;
         flex: 1;
         background: #eee;
     }
-
     .slide-card-top img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-
     .slide-actions {
         position: absolute;
         top: 20px;
@@ -68,7 +57,6 @@
         justify-content: space-between;
         z-index: 5;
     }
-
     .action-icon {
         color: white;
         font-size: 24px !important;
@@ -76,17 +64,14 @@
         cursor: pointer;
         transition: transform 0.2s;
     }
-
     .action-icon:hover {
         transform: scale(1.1);
     }
-
     .slide-info {
         padding: 20px;
         background: #050f1e;
         color: white;
     }
-
     .view-btn {
         width: 100%;
         background: #fff;
@@ -102,11 +87,9 @@
         gap: 8px;
         transition: transform 0.2s;
     }
-
     .view-btn:hover {
         transform: scale(1.02);
     }
-
     .swiper-button-next,
     .swiper-button-prev {
         color: white !important;
@@ -116,41 +99,34 @@
         border-radius: 50%;
         transition: all 0.3s ease;
     }
-
     .swiper-button-next:hover,
     .swiper-button-prev:hover {
         background: rgba(0, 180, 216, 0.7);
     }
-
     .swiper-button-next:after,
     .swiper-button-prev:after {
         font-size: 18px !important;
         font-weight: bold;
     }
-
     .review-card {
         border: 1px solid rgba(0, 0, 0, 0.05);
         transition: transform 0.2s;
     }
-
     .review-card:hover {
         transform: translateY(-5px);
     }
-
     .community-img {
         width: 100%;
         height: 180px;
         object-fit: cover;
         border-radius: 12px 12px 0 0;
     }
-
     .user-meta {
         display: flex;
         align-items: center;
         gap: 10px;
         margin-top: 15px;
     }
-
     .avatar-sm {
         width: 32px;
         height: 32px;
@@ -163,35 +139,27 @@
         font-weight: bold;
         font-size: 12px;
     }
-
     @media (max-width: 768px) {
         .hero-section {
             padding: 30px 0;
+            margin-left: -16px;
+            margin-right: -16px;
+            margin-top: -16px;
         }
-
         .swiper-slide {
             width: 280px;
             height: 440px;
         }
-
         .slide-info {
             padding: 16px;
         }
-
         .view-btn {
             padding: 10px;
             font-size: 12px;
         }
     }
-
-    @media (max-width: 992px) {
-        .hero-section {
-            margin-left: 0;
-        }
-    }
 </style>
 {% endblock %}
-
 {% block subpage_content %}
 <section class="hero-section">
     <div class="swiper heroSwiper">
@@ -199,16 +167,12 @@
             {% for event in featured_events %}
             <div class="swiper-slide">
                 <div class="slide-card-top">
-                    <div class="slide-actions">
-                        <span class="material-symbols-outlined action-icon">favorite</span>
-                        <span class="material-symbols-outlined action-icon">share</span>
-                    </div>
                     <img src="{{ event.image_url or '/static/img/placeholder.jpg' }}" alt="Event">
                 </div>
                 <div class="slide-info">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="m-0 h6 fw-bold text-uppercase">{{ event.title | truncate(20) }}</h3>
-                        <span class="small fw-bold">FREE</span>
+                        <span class="small fw-bold">{% if event.price %}${{ "%.0f"|format(event.price) }}{% else %}FREE{% endif %}</span>
                     </div>
                     <a href="/events/{{ event.id }}" class="view-btn">
                         <span class="material-symbols-outlined fs-6">confirmation_number</span>
@@ -222,7 +186,6 @@
         <div class="swiper-button-prev"></div>
     </div>
 </section>
-
 <section class="py-5 bg-white">
     <div class="container">
         <h2 class="fw-bold mb-4">Ratings & Reviews</h2>
@@ -230,9 +193,6 @@
             {% for review in featured_reviews %}
             <div class="col-md-4">
                 <div class="card h-100 review-card border-0 shadow-sm rounded-4">
-                    {% if review.image_url %}
-                    <img src="{{ review.image_url }}" class="community-img" alt="User photo">
-                    {% endif %}
                     <div class="card-body p-4">
                         <div class="text-warning mb-2">
                             {% for i in range(5) %}
@@ -240,6 +200,7 @@
                                 style="font-variation-settings: 'FILL' {{ 1 if i < review.rating else 0 }}">star</span>
                             {% endfor %}
                         </div>
+                        <h5>{{ review.event_title }}</h5>
                         <p class="text-muted small">"{{ review.body | truncate(120) }}"</p>
                         <div class="user-meta">
                             <div class="avatar-sm">{{ review.username[0] | upper }}</div>
@@ -253,7 +214,6 @@
     </div>
 </section>
 {% endblock %}
-
 {% block subpage_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script>
@@ -281,7 +241,6 @@
             },
             speed: 800,
         });
-        console.log('Swiper initialized with coverflow effect');
     });
 </script>
 {% endblock %}

@@ -20,6 +20,8 @@ async def index_view(request: Request, db: SessionDep, user: UserDep = None):
     service = EventService(EventRepository(db))
     featured_events, _, _ = service.browse(page=1, per_page=6)
 
+    highest_rated = db.exec(select(Event).order_by(desc(Event.rating)).limit(6)).all()
+
     raw_reviews = db.exec(
         select(Review)
         .where(Review.approved == True)
@@ -46,6 +48,7 @@ async def index_view(request: Request, db: SessionDep, user: UserDep = None):
             "username":    owner.username if owner else "Member",
             "event_title": ev.title       if ev    else None,
             "event_date":  ev.date        if ev    else None,
+            "highest_rated": highest_rated      if ev    else None,
         })
 
     return templates.TemplateResponse(
