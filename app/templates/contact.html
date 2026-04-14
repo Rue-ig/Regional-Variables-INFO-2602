@@ -179,8 +179,8 @@
 </style>
 {% endblock %}
 
-{% block subpage_content %}
-<div class="static-page {% if not user %}mt-5 pt-4{% endif %}">
+{% macro body() %}
+<div class="static-page">
   <div class="static-hero">
     <div class="hero-icon"><span class="material-symbols-outlined">mail</span></div>
     <h1>Get in Touch</h1>
@@ -261,7 +261,8 @@
       <div class="static-card shadow-sm">
         <h2><span class="material-symbols-outlined">live_help</span>Quick links</h2>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;">
-          {% for label, url in [("Frequently Asked Questions", "/faq"), ("Submit an event", "/events"), ("Privacy Policy", "/privacy"), ("Terms & Conditions", "/terms")] %}
+          {% for label, url in [("Frequently Asked Questions", "/faq"), ("Submit an event", "/events"), ("Privacy
+          Policy", "/privacy"), ("Terms & Conditions", "/terms")] %}
           <li>
             <a href="{{ url }}"
               style="display:flex;align-items:center;gap:8px;font-size:13px;color:#0e6e96;text-decoration:none;padding:7px 0;border-bottom:1px solid #f3f4f6;">
@@ -274,10 +275,16 @@
     </div>
   </div>
 </div>
-{% endblock %}
+{% endmacro %}
 
-{% block content %}
-    {% if not user %}
-        {{ self.subpage_content() }}
-    {% endif %}
+{% if user %}
+{% block subpage_content %}
+{{ body() }}
 {% endblock %}
+{% else %}
+{% block content %}
+<div class="container py-5 mt-5">
+  {{ body() }}
+</div>
+{% endblock %}
+{% endif %}
