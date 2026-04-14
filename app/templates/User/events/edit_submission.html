@@ -1,0 +1,93 @@
+{# PATH: app/templates/User/events/edit_submission.html #}
+{% extends "authenticated-base.html" %}
+{% block title %}Edit Submission{% endblock %}
+
+{% block subpage_content %}
+
+{% if request.query_params.get('error') %}
+  <div class="alert alert-danger alert-dismissible fade show mb-4">
+    Failed to update event. Please try again.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+{% endif %}
+
+<div class="container mt-4">
+  <h3 class="mb-4">Edit Event: {{ event.title }}</h3>
+
+  <form method="POST" action="/user/events/{{ event.id }}/update">
+    
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label fw-bold">Event Title *</label>
+        <input name="title" type="text" class="form-control" value="{{ event.title }}" required>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Description *</label>
+        <textarea name="description" rows="5" class="form-control" required>{{ event.description }}</textarea>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Island *</label>
+        <select name="island" class="form-select" required>
+          {% for island in islands %}
+          <option value="{{ island }}" {% if island == event.island.value %}selected{% endif %}>{{ island }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Category *</label>
+        <select name="category" class="form-select" required>
+          {% for cat in categories %}
+          <option value="{{ cat }}" {% if cat == event.category.value %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Venue *</label>
+        <input name="venue" type="text" class="form-control" value="{{ event.venue }}" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Start Date & Time *</label>
+        <input name="date" type="datetime-local" 
+               value="{{ event.date.isoformat()[:16] }}" class="form-control" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-bold">End Date & Time</label>
+        <input name="end_date" type="datetime-local" 
+               value="{% if event.end_date %}{{ event.end_date.isoformat()[:16] }}{% endif %}" 
+               class="form-control">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Price (TT$)</label>
+        <div class="input-group">
+          <span class="input-group-text">TT$</span>
+          <input name="price" type="number" step="0.01" min="0" 
+                 value="{{ event.price or '' }}" class="form-control">
+        </div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Image URL</label>
+        <input name="image_url" type="url" value="{{ event.image_url or '' }}" class="form-control">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Source / Ticket URL</label>
+        <input name="source_url" type="url" value="{{ event.source_url or '' }}" class="form-control">
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <a href="/submissions" class="btn btn-light rounded-pill me-2">Cancel</a>
+      <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
