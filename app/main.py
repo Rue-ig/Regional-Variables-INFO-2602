@@ -39,8 +39,8 @@ async def log_visit(request: Request, call_next):
 
     return await call_next(request)
 
-app.add_middleware(SessionMiddleware, secret_key=get_settings().secret_key)
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_visit)
+app.add_middleware(SessionMiddleware, secret_key=get_settings().secret_key)
 
 app.include_router(router)
 app.include_router(api_router)
