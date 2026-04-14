@@ -71,7 +71,7 @@
           <p class="card-text small text-muted mb-1">📍 {{ event.venue }}</p>
           <p class="card-text small mb-2">📅 {{ event.date.strftime('%a, %d %b %Y') }}</p>
           <p class="fw-bold text-primary">
-            {% if event.price is none %}Free{% else %}TT${{ "%.2f"|format(event.price) }}{% endif %}
+            {% if not event.price %}Free{% else %}TT${{ "%.2f"|format(event.price) }}{% endif %}
           </p>
         </div>
       </div>
