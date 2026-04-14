@@ -98,10 +98,6 @@
                 <option value="{{ album.id }}">{{ album.name }}</option>
                 {% endfor %}
               </select>
-              <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill"
-                onclick="this.form.action='/albums/' + document.getElementById('albumSelect_{{ event.id }}').value + '/add-event/{{ event.id }}'">
-                <span class="material-symbols-outlined fs-6">add</span>
-              </button>
             </form>
           </div>
           {% endif %}
