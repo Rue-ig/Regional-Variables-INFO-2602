@@ -154,3 +154,12 @@ async def remove_event_from_album(
             )
 
     return RedirectResponse(url=f"/albums/{album_id}", status_code=303)
+
+@router.post("/albums/{album_id}/delete")
+async def delete_album(album_id: int, db: SessionDep, user: AuthDep):
+    album = db.exec(select(Album).where(Album.id == album_id, Album.user_id == user.id)).first()
+    if album:
+        db.delete(album)
+        db.commit()
+        
+    return RedirectResponse(url="/bookmarks", status_code=303)
