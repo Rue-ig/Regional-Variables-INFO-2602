@@ -1,6 +1,58 @@
 {# PATH: app/templates/Admin/contact.html #}
 {% extends "admin.html" %}
 
+{% block additional_styles %}
+<style>
+    .original-msg-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6c757d;
+        font-weight: 800;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .original-msg-content {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #212529;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .reply-textarea {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        padding: 12px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .reply-textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        outline: none;
+    }
+
+    .inquiry-card {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .table thead th {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        color: #4b5563;
+    }
+</style>
+{% endblock %}
+
 {% block admin_subcontent %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -8,8 +60,8 @@
         <div class="text-muted small">Manage and reply to user messages</div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
+    <div class="card border-0 shadow-sm inquiry-card">
+        <div class="card-header bg-white py-3 border-0">
             <h5 class="mb-0 fw-bold">Inquiry Inbox</h5>
         </div>
         <div class="card-body p-0">
@@ -30,29 +82,36 @@
                             <td class="ps-4">
                                 <div class="fw-bold text-dark">{{ inquiry.name }}</div>
                                 <small class="text-muted d-block">{{ inquiry.email }}</small>
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ inquiry.created_at.strftime('%d %b, %H:%M') }}</small>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ inquiry.created_at.strftime('%d
+                                    %b, %H:%M') }}</small>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border fw-normal text-capitalize">{{ inquiry.subject }}</span>
+                                <span class="badge bg-light text-dark border fw-normal text-capitalize">{{
+                                    inquiry.subject }}</span>
                             </td>
                             <td>
-                                <div class="text-truncate text-muted small" style="max-width: 250px;" title="{{ inquiry.message }}">
+                                <div class="text-truncate text-muted small" style="max-width: 250px;"
+                                    title="{{ inquiry.message }}">
                                     {{ inquiry.message }}
                                 </div>
                             </td>
                             <td>
                                 {% if inquiry.replied %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Replied</span>
+                                <span
+                                    class="badge bg-success-subtle text-success border border-success-subtle">Replied</span>
                                 {% else %}
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                                <span
+                                    class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
                                 {% endif %}
                             </td>
                             <td class="text-end pe-4">
                                 <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#replyModal{{ inquiry.id }}">
+                                    <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center"
+                                        data-bs-toggle="modal" data-bs-target="#replyModal{{ inquiry.id }}">
                                         <span class="material-symbols-outlined fs-6 me-1">reply</span> Reply
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteModal{{ inquiry.id }}">
+                                    <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ inquiry.id }}">
                                         <span class="material-symbols-outlined fs-6">delete</span>
                                     </button>
                                 </div>
@@ -60,25 +119,34 @@
                         </tr>
 
                         <div class="modal fade" id="replyModal{{ inquiry.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <form action="/admin/contact/{{ inquiry.id }}/reply" method="POST" class="modal-content border-0 shadow">
-                                    <div class="modal-header border-0">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <form action="/admin/contact/{{ inquiry.id }}/reply" method="POST"
+                                    class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                                    <div class="modal-header border-0 pb-0">
                                         <h5 class="modal-title fw-bold">Reply to {{ inquiry.name }}</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
-                                    <div class="modal-body">
-                                        <div class="mb-4 bg-light p-3 rounded border-start border-primary border-4">
-                                            <small class="text-uppercase fw-bold text-muted d-block mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">Original Message</small>
-                                            <p class="mb-0 text-dark">{{ inquiry.message }}</p>
+                                    <div class="modal-body p-4">
+                                        <div class="mb-4">
+                                            <span class="original-msg-label">Original Message</span>
+                                            <div class="original-msg-content">
+                                                {{ inquiry.message }}
+                                            </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Your Response</label>
-                                            <textarea name="reply_body" class="form-control" rows="6" placeholder="Type your response here..." required>{{ inquiry.reply_body or '' }}</textarea>
+                                        <div>
+                                            <label class="original-msg-label text-primary">Your Response</label>
+                                            <textarea name="reply_body" class="form-control reply-textarea" rows="6"
+                                                placeholder="Type your response here..."
+                                                required>{{ inquiry.reply_body or '' }}</textarea>
                                         </div>
                                     </div>
-                                    <div class="modal-footer border-0">
-                                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary px-4">Send Reply</button>
+                                    <div class="modal-footer border-0 p-4 pt-0">
+                                        <button type="button" class="btn btn-light px-4" style="border-radius: 10px;"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary px-4" style="border-radius: 10px;">
+                                            <span class="material-symbols-outlined fs-6 align-middle me-1">send</span>
+                                            Send Reply
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -86,16 +154,20 @@
 
                         <div class="modal fade" id="deleteModal{{ inquiry.id }}" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-sm modal-dialog-centered">
-                                <form action="/admin/contact/{{ inquiry.id }}/delete" method="POST" class="modal-content border-0 shadow">
+                                <form action="/admin/contact/{{ inquiry.id }}/delete" method="POST"
+                                    class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
                                     <div class="modal-body text-center py-4">
                                         <div class="mb-3 text-danger">
                                             <span class="material-symbols-outlined display-4">warning</span>
                                         </div>
                                         <h5 class="fw-bold">Delete Inquiry?</h5>
-                                        <p class="text-muted small">This will permanently remove the record for <strong>{{ inquiry.name }}</strong>.</p>
+                                        <p class="text-muted small">This is permanent for <strong>{{ inquiry.name
+                                                }}</strong>.</p>
                                         <div class="d-grid gap-2 mt-4">
-                                            <button type="submit" class="btn btn-danger">Confirm Delete</button>
-                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger"
+                                                style="border-radius: 10px;">Confirm Delete</button>
+                                            <button type="button" class="btn btn-light" style="border-radius: 10px;"
+                                                data-bs-dismiss="modal">Cancel</button>
                                         </div>
                                     </div>
                                 </form>
