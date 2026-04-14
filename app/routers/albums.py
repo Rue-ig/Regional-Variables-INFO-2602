@@ -1,9 +1,11 @@
+# PATH: app/routers/albums.py
 from fastapi import Request, Form
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from app.dependencies import SessionDep, AuthDep
-from app.models.album import Album, AlbumEventLink
+from app.models.album import Album
 from app.models.event import Event
 from app.utilities.flash import flash
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from . import router, templates
 
@@ -22,8 +24,8 @@ async def create_album(
     )
     db.add(album)
     db.commit()
+    db.refresh(album)
     
-    # Check if this is an AJAX request
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return JSONResponse(content={"success": True, "album_id": album.id, "name": album.name})
     
@@ -38,32 +40,39 @@ async def add_event_to_album(
     db: SessionDep,
     user: AuthDep,
 ):
-    album = db.get(Album, album_id)
-    if not album or album.user_id != user.id:
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JSONResponse(content={"success": False, "detail": "Album not found."}, status_code=404)
-        flash(request, "Album not found.", "error")
-        return RedirectResponse(url=request.headers.get("referer", f"/events/{event_id}"), status_code=303)
-      
-    existing = db.exec(
-        select(AlbumEventLink).where(
-            AlbumEventLink.album_id == album_id,
-            AlbumEventLink.event_id == event_id,
-        )
+    album = db.exec(
+        select(Album)
+        .where(Album.id == album_id, Album.user_id == user.id)
+        .options(selectinload(Album.events))
     ).first()
 
-    if not existing:
-        db.add(AlbumEventLink(album_id=album_id, event_id=event_id))
+    event = db.get(Event, event_id)
+
+    if not album:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JSONResponse(content={"success": False, "detail": "Album not found."}, status_code=404)
+            
+        flash(request, "Album not found.", "error")
+        
+        return RedirectResponse(url=request.headers.get("referer", f"/events/{event_id}"), status_code=303)
+      
+    if not event:
+        return JSONResponse(content={"success": False, "detail": "Event not found."}, status_code=404)
+
+    if event not in album.events:
+        album.events.append(event)
+        db.add(album)
         db.commit()
         
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JSONResponse(content={"success": True, "message": f'Event added to "{album.name}".'})
-        
+            
         flash(request, f'Event added to "{album.name}".', "success")
+        
     else:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JSONResponse(content={"success": False, "detail": "Event is already in that album."}, status_code=400)
-        
+            
         flash(request, "Event is already in that album.", "info")
 
     return RedirectResponse(url=request.headers.get("referer", f"/events/{event_id}"), status_code=303)
@@ -75,16 +84,16 @@ async def view_album(
     db: SessionDep,
     user: AuthDep,
 ):
-    album = db.get(Album, album_id)
-    if not album or album.user_id != user.id:
-        flash(request, "Album not found.", "error")
-        return RedirectResponse(url="/bookmarks", status_code=303)
+    album = db.exec(
+        select(Album)
+        .where(Album.id == album_id, Album.user_id == user.id)
+        .options(selectinload(Album.events))
+    ).first()
 
-    links = db.exec(
-        select(AlbumEventLink).where(AlbumEventLink.album_id == album_id)
-    ).all()
-    event_ids = [l.event_id for l in links]
-    events = db.exec(select(Event).where(Event.id.in_(event_ids))).all() if event_ids else []
+    if not album:
+        flash(request, "Album not found.", "error")
+        
+        return RedirectResponse(url="/bookmarks", status_code=303)
 
     return templates.TemplateResponse(
         request=request,
@@ -93,7 +102,7 @@ async def view_album(
             "request": request,
             "user": user,
             "album": album,
-            "events": events,
+            "events": album.events,
         },
     )
 
@@ -105,29 +114,32 @@ async def remove_event_from_album(
     db: SessionDep,
     user: AuthDep,
 ):
-    album = db.get(Album, album_id)
-    if not album or album.user_id != user.id:
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JSONResponse(content={"success": False, "detail": "Not authorized."}, status_code=403)
-        
-        flash(request, "Not authorized.", "error")
-        return RedirectResponse(url="/bookmarks", status_code=303)
-
-    link = db.exec(
-        select(AlbumEventLink).where(
-            AlbumEventLink.album_id == album_id,
-            AlbumEventLink.event_id == event_id,
-        )
+    album = db.exec(
+        select(Album)
+        .where(Album.id == album_id, Album.user_id == user.id)
+        .options(selectinload(Album.events))
     ).first()
 
-    if link:
-        db.delete(link)
+    if not album:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JSONResponse(content={"success": False, "detail": "Not authorized."}, status_code=403)
+            
+        flash(request, "Not authorized.", "error")
+        
+        return RedirectResponse(url="/bookmarks", status_code=303)
+
+    event_to_remove = next((e for e in album.events if e.id == event_id), None)
+
+    if event_to_remove:
+        album.events.remove(event_to_remove)
+        db.add(album)
         db.commit()
         
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JSONResponse(content={"success": True, "message": "Event removed from album."})
-        
+            
         flash(request, "Event removed from album.", "success")
+        
     else:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JSONResponse(content={"success": False, "detail": "Event not found in album."}, status_code=404)
