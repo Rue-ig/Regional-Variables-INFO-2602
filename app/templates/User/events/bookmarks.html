@@ -53,8 +53,13 @@
     <div class="col-12 col-md-6 col-xl-4">
       <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="position-relative">
-          <img src="{{ event.image_url or '/static/img/default-event.jpg' }}" class="card-img-top"
+          {% if event.image_url %}
+          <img src="{{ event.image_url }}" class="card-img-top"
             style="height:200px;object-fit:cover;" alt="{{ event.title }}">
+          {% else %}
+          <img src="/static/img/default-event.jpg" class="card-img-top"
+            style="height:200px;object-fit:cover;" alt="{{ event.title }}">
+          {% endif %}
           <div class="position-absolute top-0 end-0 m-3">
             <span class="badge bg-white text-dark shadow-sm">{{ event.category.value }}</span>
           </div>

@@ -198,13 +198,13 @@
             <div class="col-md-4">
                 <div class="card h-100 review-card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
-                        <h5>{{ review.event_title }}</h5>
                         <div class="text-warning mb-2">
                             {% for i in range(5) %}
                             <span class="material-symbols-outlined"
                                 style="font-variation-settings: 'FILL' {{ 1 if i < review.rating else 0 }}">star</span>
                             {% endfor %}
                         </div>
+                        <h5>{{ review.event_title }}</h5>
                         <p class="text-muted small">"{{ review.body | truncate(120) }}"</p>
                         <div class="user-meta">
                             <div class="avatar-sm">{{ review.username[0] | upper }}</div>
