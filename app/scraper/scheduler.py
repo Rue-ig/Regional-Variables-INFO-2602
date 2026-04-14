@@ -19,13 +19,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(
-            os.path.join(os.path.dirname(__file__), "scraper.log"), encoding="utf-8"
-        ),
-    ],
+    handlers=[logging.StreamHandler()],
 )
+
 logger = logging.getLogger("scheduler")
 
 
