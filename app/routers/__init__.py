@@ -35,6 +35,7 @@ from . import (
     reviews,
     photos,
     bookmarks,
+    api_bookmarks,
     admin_events,
     admin_content,
     admin_import,
