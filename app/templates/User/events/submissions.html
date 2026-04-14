@@ -81,18 +81,22 @@
             {% endif %}
           </p>
         </div>
-
+        
         <div class="card-footer bg-white border-0 p-4 pt-0 d-flex gap-2">
           <a href="/user/events/{{ event.id }}" 
              class="btn btn-outline-primary rounded-pill btn-sm fw-bold flex-grow-1 text-center">
-            View Details
+            View
+          </a>
+        
+          <a href="/submissions/{{ event.id }}/edit" 
+             class="btn btn-outline-secondary rounded-pill btn-sm">
+            <span class="material-symbols-outlined fs-6">edit</span>
           </a>
           
           <form method="post" 
                 action="/submissions/{{ event.id }}/delete"
-                onsubmit="return confirm('Are you sure you want to delete this event? This action cannot be undone.');">
-            <button type="submit" 
-                    class="btn btn-outline-danger rounded-pill btn-sm">
+                onsubmit="return confirm('Are you sure you want to delete this event?');">
+            <button type="submit" class="btn btn-outline-danger rounded-pill btn-sm">
               <span class="material-symbols-outlined fs-6">delete</span>
             </button>
           </form>
