@@ -59,8 +59,14 @@ class EventService:
 
     def get_admin_list(self, page: int = 1, per_page: int = 50) -> list[Event]:
         offset = (page - 1) * per_page
-        
-        return self.repo.get_all_admin(offset=offset, limit=per_page)
+
+    def get_total_count(self) -> int:
+        return self.repo.count_all()
+    
+    def get_weekly_approved(self) -> int:
+        return self.repo.count_weekly_approved()
+            
+            return self.repo.get_all_admin(offset=offset, limit=per_page)
 
     def get_pending(self) -> list[Event]:
         return self.repo.get_pending()
