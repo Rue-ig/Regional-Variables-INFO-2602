@@ -21,39 +21,44 @@ CATEGORY_MAP = {
     "Culture": "Culture & Arts",
 }
 
-def _detect_island(location: dict) -> str:
-    city    = (location.get("city") or "").lower()
-    state   = (location.get("state") or "").lower()
-    country = (location.get("country") or "").lower()
-    full    = f"{city} {state} {country}"
-
+def _detect_island(text: str) -> str:
+    text = text.lower().replace("-", " ")
     mapping = {
-        "tobago":           "Tobago",
-        "trinidad":         "Trinidad",
-        "port of spain":    "Trinidad",
-        "barbados":         "Barbados",
-        "bridgetown":       "Barbados",
-        "jamaica":          "Jamaica",
-        "kingston":         "Jamaica",
-        "montego":          "Jamaica",
-        "saint lucia":      "St. Lucia",
-        "st. lucia":        "St. Lucia",
-        "grenada":          "Grenada",
-        "antigua":          "Antigua",
-        "guyana":           "Guyana",
-        "georgetown":       "Guyana",
-        "bahamas":          "Bahamas",
-        "nassau":           "Bahamas",
-        "puerto rico":      "Puerto Rico",
-        "dominica":         "Dominica",
-        "martinique":       "Martinique",
-        "curacao":          "Curacao",
-        "curaçao":          "Curacao",
-        "aruba":            "Aruba",
+        "port of spain":  "Trinidad",
+        "chaguaramas":    "Trinidad",
+        "san fernando":   "Trinidad",
+        "scarborough":    "Tobago",
+        "pigeon point":   "Tobago",
+        "bridgetown":     "Barbados",
+        "kingston":       "Jamaica",
+        "montego":        "Jamaica",
+        "nassau":         "Bahamas",
+        "georgetown":     "Guyana",
+        "tobago":         "Tobago",
+        "trinidad":       "Trinidad",
+        "barbados":       "Barbados",
+        "jamaica":        "Jamaica",
+        "antigua":        "Antigua",
+        "saint lucia":    "St. Lucia",
+        "st. lucia":      "St. Lucia",
+        "grenada":        "Grenada",
+        "st. vincent":    "St. Vincent",
+        "dominica":       "Dominica",
+        "bahamas":        "Bahamas",
+        "cayman":         "Cayman Islands",
+        "puerto rico":    "Puerto Rico",
+        "martinique":     "Martinique",
+        "guadeloupe":     "Guadeloupe",
+        "curacao":        "Curaçao",
+        "curaçao":        "Curaçao",
+        "aruba":          "Aruba",
+        "guyana":         "Guyana",
     }
+    
     for kw, island in mapping.items():
-        if kw in full:
+        if kw in text:
             return island
+            
     return "Other"
 
 def _map_category(categories: list) -> str:
