@@ -63,6 +63,7 @@ async def add_event_to_album(
         )
 
     if event not in album.events:
+        db.refresh(album)
         album.events.append(event)
         db.add(album)
         db.commit()
