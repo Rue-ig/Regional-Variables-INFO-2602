@@ -6,7 +6,6 @@ from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from .routers import templates, static_files, router, api_router
-from .templates import templates, static_files
 from app.config import get_settings
 from contextlib import asynccontextmanager
 from app.database import get_cli_session, create_db_and_tables 
