@@ -8,6 +8,8 @@ from app.services.event_service import EventService
 from app.services.content_service import ReviewService, PhotoService, BookmarkService
 from app.models.album import Album, AlbumEventLink
 from app.models.event_status import UserEventStatus
+from app.models.review_vote import ReviewVote
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from . import router, templates
 
@@ -26,18 +28,37 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
     already_reviewed = False
     user_albums = []
     user_status = None
+    user_review_votes: dict[int, str] = {}
 
     if user:
         is_bookmarked = event_id in bookmark_svc.get_bookmarked_ids(user.id)
-        already_reviewed = ReviewRepository(db).get_by_user_and_event(user.id, event_id) is not None
-        user_albums = db.exec(select(Album).where(Album.user_id == user.id)).all()
+        already_reviewed = (
+            ReviewRepository(db).get_by_user_and_event(user.id, event_id) is not None
+        )
+        
+        user_albums = db.exec(
+            select(Album)
+            .where(Album.user_id == user.id)
+            .options(selectinload(Album.events))
+        ).all()
+
         status_row = db.exec(
             select(UserEventStatus).where(
                 UserEventStatus.user_id == user.id,
-                UserEventStatus.event_id == event_id
+                UserEventStatus.event_id == event_id,
             )
         ).first()
         user_status = status_row.status if status_row else None
+
+        review_ids = [r.id for r in reviews]
+        if review_ids:
+            vote_rows = db.exec(
+                select(ReviewVote).where(
+                    ReviewVote.user_id == user.id,
+                    ReviewVote.review_id.in_(review_ids),
+                )
+            ).all()
+            user_review_votes = {v.review_id: v.vote for v in vote_rows}
 
     return templates.TemplateResponse(
         request=request,
@@ -52,5 +73,6 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
             "user": user,
             "user_albums": user_albums,
             "user_status": user_status,
+            "user_review_votes": user_review_votes,
         },
     )

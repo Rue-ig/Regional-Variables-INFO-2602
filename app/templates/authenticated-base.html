@@ -516,6 +516,9 @@
         <a class="nav-link {{ 'active' if '/bookmarks' in request.url.path }}" href="/bookmarks">
             <span class="material-symbols-outlined">bookmark</span>Saved Events
         </a>
+        <a class="nav-link {{ 'active' if '/submissions' in request.url.path }}" href="/submissions">
+            <span class="material-symbols-outlined">Approval</span>Submissions
+        </a>
         {% endif %}
 
         <div class="section-label">General</div>

@@ -1,4 +1,4 @@
-from fastapi import Request, status
+from fastapi import Request, status, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from app.dependencies.session import SessionDep
 from app.dependencies.auth import AuthDep
@@ -8,6 +8,7 @@ from app.repositories.event import EventRepository
 from app.services.event_service import EventService
 from app.schemas.event import EventFilter
 from app.models.event import Island, EventCategory, Event
+from app.schemas.event import EventCreate
 from app.models.album import Album, AlbumEventLink
 from app.models.review import Review
 from app.models.photo import Photo
@@ -169,4 +170,51 @@ async def event_detail(
             "albums": albums,
             "albums_with_event": albums_with_event,
         },
+    )
+
+@router.post("/submissions", response_class=HTMLResponse)
+async def user_event_create(
+    request: Request,
+    db: SessionDep,
+    user: AuthDep,
+    title: str = Form(...),
+    description: str = Form(...),
+    island: str = Form(...),
+    venue: str = Form(...),
+    date: str = Form(...),
+    end_date: str = Form(""),
+    price: str = Form(""),
+    category: str = Form(...),
+    source_url: str = Form(""),
+    image_url: str = Form(""),
+    status: str = "pending"
+):
+    data = EventCreate(
+        title=title,
+        description=description,
+        island=island,
+        venue=venue,
+        date=datetime.fromisoformat(date),
+        end_date=datetime.fromisoformat(end_date) if end_date else None,
+        price=float(price) if price else None,
+        category=category,
+        source_url=source_url or None,
+        image_url=image_url or None,
+        status=status,
+    )
+    EventService(EventRepository(db)).create(data, user_id=user.id)
+    return RedirectResponse(url="/user/events/submissions", status_code=303)
+
+@router.get("/user/events/submissions", response_class=HTMLResponse)
+async def user_event_submissions(request: Request, db: SessionDep, user: AuthDep):
+    events = EventService(EventRepository(db)).repo.get_by_user(user.id)
+    return templates.TemplateResponse(
+        request=request,
+        name="User/events/submissions.html",
+        context={
+            "user": user,
+            "events": events,
+            "islands": [i.value for i in Island],
+            "categories": [c.value for c in EventCategory]
+        }
     )
