@@ -468,7 +468,7 @@
             <div class="brand-tagline">Discover the Islands</div>
         </div>
     </a>
-    
+
     <div class="sidebar-nav">
         {% if user.role == 'admin' %}
         <div class="section-label">Administration</div>
@@ -493,7 +493,7 @@
         <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
             <span class="material-symbols-outlined">help</span>Edit FAQ
         </a>
-    
+
         {% else %}
         <div class="section-label">Explore</div>
         <a class="nav-link {{ 'active' if request.url.path == '/home' }}" href="/home">
@@ -511,7 +511,7 @@
         <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
             <span class="material-symbols-outlined">help</span>FAQ
         </a>
-    
+
         <div class="section-label">My Space</div>
         <a class="nav-link {{ 'active' if '/bookmarks' in request.url.path }}" href="/bookmarks">
             <span class="material-symbols-outlined">bookmark</span>Saved Events
@@ -534,12 +534,12 @@
         <a class="nav-link {{ 'active' if request.url.path == '/disclaimer' }}" href="/disclaimer">
             <span class="material-symbols-outlined">priority_high</span>Disclaimer
         </a>
-    
+
         <a class="nav-link nav-logout" href="/logout">
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
     </div>
-    
+
     <div class="sidebar-footer">
         <a href="/app" class="sidebar-user">
             <div class="user-avatar">{{ initials }}</div>
