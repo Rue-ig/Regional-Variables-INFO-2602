@@ -1,6 +1,8 @@
 {# PATH: app/templates/pages/about.html #}
-{% extends "authenticated-base.html" if user else "base.html" %}
+{% extends "authenticated-base.html" %}
+
 {% block title %}About Us – dwivé{% endblock %}
+
 {% block additional_styles %}
 <style>
   .static-page {
@@ -171,25 +173,22 @@
 {% endblock %}
 
 {% set page_body %}
-<div class="static-page {% if not user %}pt-5 mt-4{% endif %}">
+<div class="static-page">
   <div class="static-hero">
-    <div class="static-hero">
     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div class="hero-icon">
-            <span class="material-symbols-outlined">travel_explore</span>
-        </div>
-        <a href="/home" class="btn btn-sm btn-outline-light" style="border-radius: 40px;">
-            <span class="material-symbols-outlined" style="font-size: 16px;">home</span>
-            Home
-        </a>
+      <div class="hero-icon">
+        <span class="material-symbols-outlined">travel_explore</span>
+      </div>
+      <a href="/home" class="btn btn-sm btn-outline-light"
+        style="border-radius: 40px; font-size: 12px; display: flex; align-items: center; gap: 4px; padding: 4px 12px;">
+        <span class="material-symbols-outlined" style="font-size: 16px;">home</span>
+        Home
+      </a>
     </div>
     <h1>About DWIVE</h1>
     <p>Your Caribbean events aggregator — built in Trinidad, for the region.</p>
-</div>
-    <div class="hero-icon"><span class="material-symbols-outlined">travel_explore</span></div>
-    <h1>About DWIVE</h1>
-    <p>Your Caribbean events aggregator — built in Trinidad, for the region.</p>
   </div>
+
   <div class="static-card">
     <h2><span class="material-symbols-outlined">flag</span>Our Mission</h2>
     <p>DWIVE was built to solve a real problem: Caribbean events are scattered across dozens of ticketing sites, social
@@ -198,6 +197,7 @@
     <p>From carnival fetes in Trinidad to jazz festivals in Saint Lucia, we aggregate, verify, and present events from
       across the Caribbean so you can browse, discover, and plan with ease.</p>
   </div>
+
   <div class="static-card">
     <h2><span class="material-symbols-outlined">bar_chart</span>By the numbers</h2>
     <div class="stat-row">
@@ -215,6 +215,7 @@
       </div>
     </div>
   </div>
+
   <div class="static-card">
     <h2><span class="material-symbols-outlined">build</span>How it works</h2>
     <ul>
@@ -225,25 +226,42 @@
       <li>Promoters can contact us directly to have their events featured.</li>
     </ul>
   </div>
+
   <div class="static-card">
     <h2><span class="material-symbols-outlined">group</span>The team</h2>
     <p>DWIVE is a student project developed at the University of the West Indies, St. Augustine, as part of the INFO
       2602 Web Application Development course.</p>
     <div class="team-grid">
       <div class="team-card">
-        <div class="team-av">RV</div>
-        <div class="team-name">Your Name</div>
-        <div class="team-role">Full-stack Developer</div>
+        <div class="team-av">RG</div>
+        <div class="team-name">Rinard Guy</div>
+        <div class="team-role">Lead Developer</div>
+      </div>
+      <div class="team-card">
+        <div class="team-av">BV</div>
+        <div class="team-name">Bethany Vital</div>
+        <div class="team-role">UI Design</div>
+      </div>
+      <div class="team-card">
+        <div class="team-av">J</div>
+        <div class="team-name">Jonathan</div>
+        <div class="team-role">Marketing</div>
+      </div>
+      <div class="team-card">
+        <div class="team-av">RP</div>
+        <div class="team-name">Runel Primus</div>
+        <div class="team-role">Dev Ops</div>
       </div>
     </div>
   </div>
+
   <div class="static-card">
     <h2><span class="material-symbols-outlined">mail</span>Get in touch</h2>
-    <p>Have an event to list, a partnership proposal, or a bug to report? Head to our <a href="/contact">contact
-        page</a> or email us at <a href="mailto:hello@dwive.tt">hello@dwive.tt</a>.</p>
+    <p>Have an event to list, a partnership proposal, or a bug to report? Head to our <a href="/contact"
+        style="color:#0e6e96">contact
+        page</a> or email us at <a href="mailto:hello@dwive.tt" style="color:#0e6e96">hello@dwive.tt</a>.</p>
   </div>
 </div>
 {% endset %}
 
 {% block subpage_content %}{{ page_body }}{% endblock %}
-{% block content %}<div class="container">{{ page_body }}</div>{% endblock %}
