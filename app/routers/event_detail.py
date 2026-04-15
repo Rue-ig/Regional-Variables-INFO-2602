@@ -76,7 +76,7 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
     )
 
 @router.get("/user/events/{id}", response_class=HTMLResponse)
-# DO NOT TOUCH THIS !!!!! function wasn't meant to be this detail. 
+# DO NOT TOUCH THIS !!!!! function wasn't meant to be this detailed. 
 #   Going to the user detail page gives access to the other route that provides this
 
 # async def user_event_detail(request: Request, id: int, db: SessionDep, user: UserDep):
