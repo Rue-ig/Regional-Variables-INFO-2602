@@ -32,23 +32,20 @@ async def disable_user(
 
 @router.post("/admin/users/{user_id}/enable")
 async def enable_user(
-    request: Request,
-    user_id: int,
-    db: SessionDep,
+    user_id: int, 
+    db: SessionDep, 
     admin: AdminDep
 ):
     user_repo = UserRepository(db)
     user_service = UserService(user_repo)
 
-    success = user_service.enable_user(user_id)
-    
-    if not success:
+    if user_service.enable_user(user_id):
         return RedirectResponse(
-            url="/admin/users?error=Could+not+enable+user", 
+            url="/admin/users?message=User+access+restored", 
             status_code=303
         )
-
+    
     return RedirectResponse(
-        url="/admin/users?message=User+enabled+successfully", 
+        url="/admin/users?error=User+not+found", 
         status_code=303
     )
