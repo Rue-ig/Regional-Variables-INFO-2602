@@ -1,6 +1,5 @@
 {# PATH: app/templates/authenticated-base.html #}
 {% extends "base.html" %}
-
 {% block internal_css %}
 <style>
     body {
@@ -56,6 +55,23 @@
         gap: 11px;
         text-decoration: none;
         flex-shrink: 0;
+    }
+
+    .brand-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, var(--cb-coral) 0%, #ff8c57 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .brand-icon svg {
+        width: 20px;
+        height: 20px;
+        fill: #fff;
     }
 
     .brand-text {
@@ -252,6 +268,7 @@
         overflow: visible !important;
         background: linear-gradient(to right, rgba(0, 0, 0, 0.02), transparent 60px);
         box-shadow: inset 10px 0 20px rgba(0, 0, 0, 0.04);
+        backdrop-filter: blur(1px);
     }
 
     #content.expanded {
@@ -259,16 +276,13 @@
     }
 
     .topbar {
-        height: var(--cb-topbar-h);
-        background: #053225;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
         display: flex;
         align-items: center;
-        padding: 0 20px;
-        gap: 14px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+        gap: 12px;
+        padding: 12px 16px;
+        position: relative;
+        background: #053225;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
         overflow: hidden;
     }
 
@@ -306,7 +320,6 @@
         cursor: pointer;
         color: #FB5607;
         transition: all 0.25s ease;
-        flex-shrink: 0;
     }
 
     .topbar-toggle:hover {
@@ -328,10 +341,6 @@
         color: #fff3;
     }
 
-    .topbar-spacer {
-        flex: 1;
-    }
-
     .topbar-badge {
         font-size: 11px;
         font-weight: 700;
@@ -344,10 +353,11 @@
     }
 
     .topbar-user {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 9px;
-        padding: 5px 10px 5px 5px;
+        flex: 0 0 auto;
+        padding: 5px 12px 5px 5px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.25);
@@ -375,6 +385,16 @@
         color: #fff;
         text-transform: uppercase;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .topbar-username {
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .topbar-spacer {
+        flex: 1;
     }
 
     .page-body {
@@ -491,15 +511,12 @@
 
 {% block content %}
 {% set initials = user.username[:2] | upper %}
-
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
 <nav id="sidebar">
     <svg class="sidebar-wave" viewBox="0 0 260 60" xmlns="http://www.w3.org/2000/svg">
         <path d="M0 30 C50 10 100 50 150 30 C180 18 220 38 260 25 L260 60 L0 60 Z" fill="white" />
         <path d="M0 40 C60 20 110 55 170 38 C205 28 235 44 260 35 L260 60 L0 60 Z" fill="white" opacity=".5" />
     </svg>
-
     <a class="sidebar-brand" href="/">
         <div style="background-color: white; border-radius: 4px;">
             <img src="{{ url_for('static', path='img/logo-no.png') }}" alt="Logo" style="width: 40px; height: 40px;">
@@ -509,7 +526,6 @@
             <div class="brand-tagline">Discover the Islands</div>
         </div>
     </a>
-
     <div class="sidebar-nav">
         {% if user.role == 'admin' %}
         <div class="section-label">Administration</div>
@@ -534,7 +550,6 @@
         <a class="nav-link {{ 'active' if '/admin/faq' in request.url.path }}" href="/admin/faq/edit">
             <span class="material-symbols-outlined">help</span>Edit FAQ
         </a>
-
         {% else %}
         <div class="section-label">Explore</div>
         <a class="nav-link {{ 'active' if request.url.path == '/home' }}" href="/home">
@@ -552,7 +567,6 @@
         <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
             <span class="material-symbols-outlined">help</span>FAQ
         </a>
-
         <div class="section-label">My Space</div>
         <a class="nav-link {{ 'active' if '/bookmarks' in request.url.path }}" href="/bookmarks">
             <span class="material-symbols-outlined">bookmark</span>Saved Events
@@ -561,7 +575,6 @@
             <span class="material-symbols-outlined">approval</span>Submissions
         </a>
         {% endif %}
-
         <div class="section-label">General</div>
         <a class="nav-link {{ 'active' if request.url.path == '/about' }}" href="/about">
             <span class="material-symbols-outlined">info</span>About Dwivé
@@ -582,10 +595,13 @@
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
     </div>
-
     <div class="sidebar-footer">
         <a href="/app" class="sidebar-user">
-            <div class="user-avatar">{{ initials }}</div>
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
+                style="width: 30px; height: 30px;">
+                <img src="/static/img/profile_pic.jpg" alt="Profile"
+                    style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
             <div class="user-info">
                 <div class="user-name">{{ user.username }}</div>
                 <div class="user-role">{{ user.role or 'Member' }}</div>
@@ -593,7 +609,6 @@
         </a>
     </div>
 </nav>
-
 <div id="content">
     <div class="topbar">
         <button class="topbar-toggle" id="menuToggle" aria-label="Toggle sidebar">
@@ -608,20 +623,24 @@
         <span class="topbar-badge">Admin</span>
         {% endif %}
         <a href="/app" class="topbar-user">
-            <div class="topbar-avatar">{{ initials }}</div>
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
+                style="width: 30px; height: 30px;">
+                <img src="/static/img/profile_pic.jpg" alt="Profile"
+                    style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
             <span class="topbar-username">{{ user.username }}</span>
         </a>
     </div>
-
     {% if get_flashed_messages %}
     <div class="flash-zone mt-3">
         {% for message in get_flashed_messages(request) %}
         <div
             class="alert alert-{{ 'danger' if message.category == 'error' else message.category }} alert-dismissible fade show mb-2">
             <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">
-                {{ 'check_circle' if message.category == 'success' else
-                'warning' if message.category == 'warning' else
-                'info' if message.category == 'info' else 'error' }}
+                {{ 'check_circle' if message.category == 'success'
+                else 'warning' if message.category == 'warning'
+                else 'info' if message.category == 'info'
+                else 'error' }}
             </span>
             {{ message.message }}
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -629,12 +648,10 @@
         {% endfor %}
     </div>
     {% endif %}
-
     <main class="page-body">
         {% block subpage_content %}{% endblock %}
     </main>
 </div>
-
 <script>
     (function () {
         const sidebar = document.getElementById('sidebar');
@@ -642,7 +659,6 @@
         const overlay = document.getElementById('sidebarOverlay');
         const btn = document.getElementById('menuToggle');
         const isMobile = () => window.innerWidth <= 768;
-
         btn.addEventListener('click', () => {
             if (isMobile()) {
                 sidebar.classList.toggle('mobile-open');
@@ -652,20 +668,11 @@
                 content.classList.toggle('expanded');
             }
         });
-
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('mobile-open');
             overlay.classList.remove('active');
         });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape" && overlay.classList.contains('active')) {
-                sidebar.classList.remove('mobile-open');
-                overlay.classList.remove('active');
-            }
-        });
     })();
 </script>
-
 {% block subpage_scripts %}{% endblock %}
 {% endblock %}
