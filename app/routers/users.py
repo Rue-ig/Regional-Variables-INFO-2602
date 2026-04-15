@@ -5,9 +5,9 @@ from app.dependencies.auth import AdminDep
 from app.services.user_service import UserService
 from app.repositories.user import UserRepository
 from app.schemas.user import UserResponse
-from . import api_router
+from . import router
 
-@api_router.get("/users", response_model=list[UserResponse])
+@router.get("/users", response_model=list[UserResponse])
 async def list_users(request: Request, db: SessionDep, admin: AdminDep):
     user_repo = UserRepository(db)
     user_service = UserService(user_repo)
