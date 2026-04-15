@@ -98,6 +98,10 @@
                 <option value="{{ album.id }}">{{ album.name }}</option>
                 {% endfor %}
               </select>
+              <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill"
+                onclick="this.form.action='/albums/' + document.getElementById('albumSelect_{{ event.id }}').value + '/add-event/{{ event.id }}'">
+                <span class="material-symbols-outlined fs-6">add</span>
+              </button>
             </form>
           </div>
           {% endif %}
@@ -203,7 +207,6 @@
   <div class="row g-4">
     {% for album in user_albums %}
     <div class="col-12 col-md-4">
-      {# Entire card is a link to the album detail page #}
       <a href="/albums/{{ album.id }}"
          class="card border-0 shadow-sm rounded-4 p-3 h-100 d-flex flex-row align-items-center text-decoration-none text-dark"
          style="transition:box-shadow .15s,transform .15s;"
