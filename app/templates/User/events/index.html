@@ -152,57 +152,30 @@
   background: linear-gradient(135deg, #FB5607, #EEB902);
   color: #fff;
   border: none;
-
-  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
   border-radius: 12px;
-
-  font-weight: 600;
+  min-height: 48px;
+  font-weight: 700;
   font-size: 14px;
-  letter-spacing: 0.2px;
-
+  letter-spacing: 0.03em;
+  text-decoration: none;
   cursor: pointer;
-
-  position: relative;
-  overflow: hidden;
-
   transition: all 0.25s ease;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(251, 86, 7, 0.35);
 }
 
-/* hover lift + glow */
 .btn-filter:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(251, 86, 7, 0.25);
-  filter: brightness(1.05);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(251, 86, 7, 0.5);
 }
 
-/* active press effect */
 .btn-filter:active {
-  transform: translateY(0px) scale(0.98);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-/* subtle shine sweep */
-.btn-filter::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -120%;
-  width: 60%;
-  height: 100%;
-
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255, 255, 255, 0.35),
-    transparent
-  );
-
-  transition: left 0.6s ease;
-}
-
-.btn-filter:hover::before {
-  left: 120%;
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 6px 14px rgba(251, 86, 7, 0.3);
 }
 </style>
 
