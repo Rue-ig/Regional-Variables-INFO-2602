@@ -14,6 +14,16 @@ def _island_values():
 def _category_values():
     return [c.value for c in EventCategory]
 
+def _merge_datetime(date_str: str, time_str: str) -> Optional[datetime]:
+    if not date_str or not time_str:
+        return None
+        
+    try:
+        return datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+        
+    except ValueError:
+        return None
+
 @router.get("/submissions", response_class=HTMLResponse)
 async def submissions_page(request: Request, db: SessionDep, user: AuthDep):
     events = db.exec(
@@ -43,20 +53,26 @@ async def create_submission(
     island: str = Form(...),
     category: str = Form(...),
     venue: str = Form(...),
-    date: str = Form(...),
-    end_date: Optional[str] = Form(None),
+    event_date: str = Form(...),
+    event_time: str = Form(...),
+    end_date_only: Optional[str] = Form(None),
+    end_time_only: Optional[str] = Form(None),
     price: Optional[float] = Form(None),
     image_url: Optional[str] = Form(None),
     source_url: Optional[str] = Form(None),
 ):
     try:
         island_enum = Island(island)
-        event_date = datetime.fromisoformat(date)
+        start_dt = _merge_datetime(event_date, event_time)
+        end_dt = _merge_datetime(end_date_only, end_time_only) if end_date_only and end_time_only else None
+
+        if not start_dt:
+            return RedirectResponse(url="/submissions?error=invalid_date", status_code=303)
         
         existing_event = db.exec(
             select(Event).where(
                 Event.title == title.strip(),
-                Event.date == event_date,
+                Event.date == start_dt,
                 Event.island == island_enum
             )
         ).first()
@@ -73,8 +89,8 @@ async def create_submission(
             island=island_enum,
             category=EventCategory(category),
             venue=venue.strip(),
-            date=event_date,
-            end_date=datetime.fromisoformat(end_date) if end_date else None,
+            date=start_dt,
+            end_date=end_dt,
             price=price,
             image_url=image_url.strip() if image_url else None,
             source_url=source_url.strip() if source_url else None,
@@ -93,7 +109,6 @@ async def create_submission(
 
 @router.get("/submissions/{event_id}/edit", response_class=HTMLResponse)
 async def edit_submission_view(request: Request, event_id: int, db: SessionDep, user: AuthDep):
-    """Shows the edit form populated with current event data."""
     event = db.get(Event, event_id)
     
     if not event or event.created_by != user.id:
@@ -121,8 +136,10 @@ async def update_submission(
     island: str = Form(...),
     category: str = Form(...),
     venue: str = Form(...),
-    date: str = Form(...),
-    end_date: Optional[str] = Form(None),
+    event_date: str = Form(...),
+    event_time: str = Form(...),
+    end_date_only: Optional[str] = Form(None),
+    end_time_only: Optional[str] = Form(None),
     price: Optional[float] = Form(None),
     image_url: Optional[str] = Form(None),
     source_url: Optional[str] = Form(None),
@@ -132,13 +149,19 @@ async def update_submission(
         return RedirectResponse(url="/submissions?error=not_found", status_code=303)
 
     try:
+        start_dt = _merge_datetime(event_date, event_time)
+        end_dt = _merge_datetime(end_date_only, end_time_only) if end_date_only and end_time_only else None
+
+        if not start_dt:
+             return RedirectResponse(url=f"/submissions/{event_id}/edit?error=invalid_date", status_code=303)
+
         event.title = title.strip()
         event.description = description.strip()
         event.island = Island(island)
         event.category = EventCategory(category)
         event.venue = venue.strip()
-        event.date = datetime.fromisoformat(date)
-        event.end_date = datetime.fromisoformat(end_date) if end_date else None
+        event.date = start_dt
+        event.end_date = end_dt
         event.price = price
         event.image_url = image_url.strip() if image_url else None
         event.source_url = source_url.strip() if source_url else None
