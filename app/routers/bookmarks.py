@@ -11,7 +11,6 @@ from app.models.event_status import UserEventStatus
 from app.models.report import Report
 from sqlmodel import select
 from . import router, templates
-import random
 
 @router.get("/bookmarks", response_class=HTMLResponse)
 async def bookmarks_page(request: Request, db: SessionDep, user: AuthDep):
@@ -45,7 +44,6 @@ async def bookmarks_page(request: Request, db: SessionDep, user: AuthDep):
         },
     )
 
-
 @router.post("/bookmarks/status/{event_id}")
 async def set_event_status(
     request: Request,
@@ -70,7 +68,6 @@ async def set_event_status(
 
     referer = request.headers.get("referer", "/bookmarks")
     return RedirectResponse(url=referer, status_code=303)
-
 
 @router.post("/albums/create")
 async def create_album(
@@ -166,6 +163,7 @@ async def delete_album(
     referer = request.headers.get("referer", "/bookmarks")
     return RedirectResponse(url=referer, status_code=303)
 
+
 @router.post("/reports/{item_type}/{item_id}")
 async def submit_report(
     request: Request,
@@ -189,13 +187,12 @@ async def submit_report(
         reason=reason,
         details=details,
     )
-    
+
     if item_type == "photo":
         report.photo_id = item_id
-        
     elif item_type == "review":
         report.review_id = item_id
-        
+
     db.add(report)
     db.commit()
 

@@ -1,12 +1,12 @@
 # PATH: app/routers/event_detail.py
 from fastapi import Request, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from app.dependencies import SessionDep, UserDep
 from app.repositories.event import EventRepository
 from app.repositories.content import ReviewRepository, PhotoRepository, BookmarkRepository
 from app.services.event_service import EventService
 from app.services.content_service import ReviewService, PhotoService, BookmarkService
-from app.models.album import Album, AlbumEventLink
+from app.models.album import Album
 from app.models.event_status import UserEventStatus
 from app.models.review_vote import ReviewVote
 from sqlalchemy.orm import selectinload
@@ -35,13 +35,11 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
         already_reviewed = (
             ReviewRepository(db).get_by_user_and_event(user.id, event_id) is not None
         )
-
         user_albums = db.exec(
             select(Album)
             .where(Album.user_id == user.id)
             .options(selectinload(Album.events))
         ).all()
-
         status_row = db.exec(
             select(UserEventStatus).where(
                 UserEventStatus.user_id == user.id,
@@ -78,12 +76,7 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
     )
 
 @router.get("/user/events/{id}", response_class=HTMLResponse)
-async def user_event_detail(
-    request: Request,
-    id: int,
-    db: SessionDep,
-    user: UserDep
-):
+async def user_event_detail(request: Request, id: int, db: SessionDep, user: UserDep):
     events = EventService(EventRepository(db)).repo.get_by_user(user.id)
     event = next((e for e in events if e.id == id), None)
 
@@ -97,29 +90,37 @@ async def user_event_detail(
     avg_rating = review_svc.get_average_rating(id)
     photos = photo_svc.get_for_event(id)
 
-    user_albums = db.exec(
-        select(Album)
-        .where(Album.user_id == user.id)
-        .options(selectinload(Album.events))
-    ).all() if user else []
-
-    status_row = db.exec(
-        select(UserEventStatus).where(
-            UserEventStatus.user_id == user.id,
-            UserEventStatus.event_id == id,
-        )
-    ).first() if user else None
-
-    review_ids = [r.id for r in reviews]
-    user_review_votes: dict[int, str] = {}
-    if user and review_ids:
-        vote_rows = db.exec(
-            select(ReviewVote).where(
-                ReviewVote.user_id == user.id,
-                ReviewVote.review_id.in_(review_ids),
-            )
+    user_albums = (
+        db.exec(
+            select(Album)
+            .where(Album.user_id == user.id)
+            .options(selectinload(Album.events))
         ).all()
-        user_review_votes = {v.review_id: v.vote for v in vote_rows}
+        if user
+        else []
+    )
+    status_row = (
+        db.exec(
+            select(UserEventStatus).where(
+                UserEventStatus.user_id == user.id,
+                UserEventStatus.event_id == id,
+            )
+        ).first()
+        if user
+        else None
+    )
+
+    user_review_votes: dict[int, str] = {}
+    if user:
+        review_ids = [r.id for r in reviews]
+        if review_ids:
+            vote_rows = db.exec(
+                select(ReviewVote).where(
+                    ReviewVote.user_id == user.id,
+                    ReviewVote.review_id.in_(review_ids),
+                )
+            ).all()
+            user_review_votes = {v.review_id: v.vote for v in vote_rows}
 
     return templates.TemplateResponse(
         request=request,

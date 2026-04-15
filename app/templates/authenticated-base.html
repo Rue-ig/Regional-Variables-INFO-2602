@@ -1,69 +1,51 @@
 {# PATH: app/templates/authenticated-base.html #}
 {% extends "base.html" %}
-
 {% block internal_css %}
 <style>
-   
     body {
         background: var(--cb-sand);
         overflow-x: hidden;
     }
 
     #sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: var(--cb-sidebar-w);
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--cb-sidebar-w);
+        background: #053225;
+        display: flex;
+        flex-direction: column;
+        z-index: 1040;
+        overflow: hidden;
+        transition: transform var(--transition);
+        box-shadow: 12px 0 30px rgba(0, 0, 0, 0.22);
+    }
 
-     background:  #053225;
-
-    display: flex;
-    flex-direction: column;
-    z-index: 1040;
-    overflow: hidden;
-
-    transition: transform var(--transition);
-
-    box-shadow: 12px 0 30px rgba(0, 0, 0, 0.22);
-}
     #sidebar.collapsed {
         transform: translateX(calc(-1 * var(--cb-sidebar-w)));
     }
 
     #sidebar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 45%),
+            radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.15), transparent 55%);
+        pointer-events: none;
+    }
 
-    background:
-        radial-gradient(circle at top left,
-            rgba(255,255,255,0.18),
-            transparent 45%),
-
-        radial-gradient(circle at bottom right,
-            rgba(0,0,0,0.15),
-            transparent 55%);
-
-    pointer-events: none;
-}
-
- #sidebar::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 35px;
-    height: 100%;
-
-    background: linear-gradient(
-        to right,
-        transparent,
-        rgba(0, 0, 0, 0.08)
-    );
-
-    pointer-events: none;
-}
+    #sidebar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 35px;
+        height: 100%;
+        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08));
+        pointer-events: none;
+    }
 
     .sidebar-brand {
         padding: 22px 20px 18px;
@@ -121,421 +103,299 @@
         display: none;
     }
 
- .section-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-
-    color: rgba(255, 255, 255, 0.75);
-
-    padding: 14px 8px 6px;
-    font-weight: 600;
-}
+    .section-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.75);
+        padding: 14px 8px 6px;
+        font-weight: 600;
+    }
 
     .section-label:first-child {
         padding-top: 4px;
     }
 
-   /* =========================
-   NAV LINKS
-   ========================= */
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        margin-bottom: 4px;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        position: relative;
+    }
 
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    .nav-link .material-symbols-outlined {
+        font-size: 20px;
+        transition: all 0.25s ease;
+        color: rgba(255, 255, 255, 0.5);
+    }
 
-    padding: 10px 12px;
-    border-radius: 12px;
-    margin-bottom: 4px;
+    .nav-link:hover {
+        background: rgba(255, 255, 255, 0.10);
+        color: #fff;
+        transform: translateX(3px);
+    }
 
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 14px;
-    font-weight: 500;
+    .nav-link:hover .material-symbols-outlined {
+        color: #FB5607;
+    }
 
-    text-decoration: none;
+    .nav-link::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 0;
+        background: #FB5607;
+        border-radius: 10px;
+        transition: height 0.25s ease;
+    }
 
-    transition: all 0.25s ease;
-    position: relative;
-}
+    .nav-link:hover::before,
+    .nav-link.active::before {
+        height: 60%;
+    }
 
-/* icon */
-.nav-link .material-symbols-outlined {
-    font-size: 20px;
-    transition: all 0.25s ease;
-    color: rgba(255,255,255,0.5);
-}
+    .nav-link.active::before {
+        height: 70%;
+    }
 
-/* ================= HOVER ================= */
+    .nav-link.active {
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+            0 8px 20px rgba(0, 0, 0, 0.12);
+    }
 
-.nav-link:hover {
-    background: rgba(255, 255, 255, 0.10);
-    color: #fff;
-    transform: translateX(3px);
-}
+    .nav-link.active .material-symbols-outlined {
+        color: #FB5607;
+    }
 
-.nav-link:hover .material-symbols-outlined {
-    color: #FB5607;
-}
+    .nav-link.nav-logout {
+        color: rgba(255, 120, 90, 0.75);
+        margin-top: 6px;
+    }
 
-/* subtle left accent line animation */
-.nav-link::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    .nav-link.nav-logout:hover {
+        color: #fff;
+        background: rgba(251, 86, 7, 0.12);
+    }
 
-    width: 3px;
-    height: 0;
+    .nav-link.nav-logout:hover .material-symbols-outlined {
+        color: #FB5607;
+    }
 
-    background: #FB5607;
-    border-radius: 10px;
+    .sidebar-footer {
+        padding: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
+    }
 
-    transition: height 0.25s ease;
-}
+    .sidebar-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.04);
+    }
 
-.nav-link:hover::before,
-.nav-link.active::before {
-    height: 65%;
-}
+    .sidebar-user:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+    }
 
-.nav-link:hover::before {
-    height: 60%;
-}
+    .user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FB5607, #ff8c57);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+    }
 
+    .user-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-/* ================= ACTIVE STATE ================= */
+    .user-role {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.45);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
 
-.nav-link.active {
-    background: rgba(255, 255, 255, 0.18);
-    color: #fff;
+    .sidebar-wave {
+        position: absolute;
+        bottom: 90px;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+        opacity: 0.05;
+        filter: blur(0.5px);
+    }
 
-    box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.25),
-        0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.nav-link.active .material-symbols-outlined {
-    color: #FB5607;
-}
-
-/* active indicator bar */
-.nav-link.active::before {
-    height: 70%;
-}
-
-
-/* ================= LOGOUT ================= */
-
-.nav-link.nav-logout {
-    color: rgba(255, 120, 90, 0.75);
-    margin-top: 6px;
-}
-
-.nav-link.nav-logout:hover {
-    color: #fff;
-    background: rgba(251, 86, 7, 0.12);
-}
-
-.nav-link.nav-logout:hover .material-symbols-outlined {
-    color: #FB5607;
-}
-
-
-/* ================= SIDEBAR FOOTER ================= */
-
-.sidebar-footer {
-    padding: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-}
-
-
-/* ================= USER CARD ================= */
-
-.sidebar-user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    padding: 10px 12px;
-    border-radius: 12px;
-
-    transition: all 0.25s ease;
-    cursor: pointer;
-    text-decoration: none;
-
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.sidebar-user:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-2px);
-}
-
-
-/* avatar */
-.user-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-
-    background: linear-gradient(135deg, #FB5607, #ff8c57);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    text-transform: uppercase;
-
-    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
-}
-
-
-/* user text */
-.user-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.user-role {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-
-/* ================= DECOR WAVE ================= */
-
-.sidebar-wave {
-    position: absolute;
-    bottom: 90px;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-    opacity: 0.05;
-    filter: blur(0.5px);
-}
-
-
-/* ================= CONTENT AREA ================= */
-
-#content {
-    margin-left: var(--cb-sidebar-w);
-    min-height: 100vh;
-    transition: margin 0.3s ease;
-
-    display: flex;
-    flex-direction: column;
-    overflow: visible !important;
-
-    background: linear-gradient(
-        to right,
-        rgba(0,0,0,0.02),
-        transparent 60px
-    );
-    box-shadow: inset 10px 0 20px rgba(0, 0, 0, 0.04);
-    backdrop-filter: blur(1px);
-}
+    #content {
+        margin-left: var(--cb-sidebar-w);
+        min-height: 100vh;
+        transition: margin 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        overflow: visible !important;
+        background: linear-gradient(to right, rgba(0, 0, 0, 0.02), transparent 60px);
+        box-shadow: inset 10px 0 20px rgba(0, 0, 0, 0.04);
+        backdrop-filter: blur(1px);
+    }
 
     #content.expanded {
         margin-left: 0;
     }
 
-/* =========================
-   TOPBAR
-   ========================= */
+    .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        position: relative;
+        background: #053225;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+    }
 
-.topbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    .topbar::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 45%),
+            radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.15), transparent 55%);
+        pointer-events: none;
+    }
 
-    padding: 12px 16px;
-    position: relative;
+    .topbar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 35px;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), transparent);
+        pointer-events: none;
+    }
 
-    background: #053225;
+    .topbar-toggle {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #FB5607;
+        transition: all 0.25s ease;
+    }
 
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    .topbar-toggle:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.08);
+    }
 
-    overflow: hidden;
-}
+    .topbar-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-.topbar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
+    .topbar-title .material-symbols-outlined {
+        font-size: 18px;
+        color: #fff3;
+    }
 
-    background:
-        radial-gradient(
-            circle at top left,
-            rgba(255,255,255,0.18),
-            transparent 45%
-        ),
-        radial-gradient(
-            circle at bottom right,
-            rgba(0,0,0,0.15),
-            transparent 55%
-        );
+    .topbar-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        letter-spacing: .03em;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        backdrop-filter: blur(6px);
+    }
 
-    pointer-events: none;
-}
+    .topbar-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        flex: 0 0 auto;
+        padding: 5px 12px 5px 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
 
-.topbar::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
+    .topbar-user:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-1px);
+    }
 
-    width: 100%;
-    height: 35px;
+    .topbar-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1AC1DD, #0ea5e9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
 
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.08),
-        transparent
-    );
+    .topbar-username {
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+    }
 
-    pointer-events: none;
-}
-
-/* ================= TOGGLE ================= */
-
-.topbar-toggle {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-
-    border: 1px solid rgba(255,255,255,0.3);
-    background: rgba(255,255,255,0.15);
-
-    backdrop-filter: blur(6px);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
-    color: #FB5607;
-
-    transition: all 0.25s ease;
-}
-
-.topbar-toggle:hover {
-    background: rgba(255,255,255,0.25);
-    transform: scale(1.08);
-}
-
-
-/* ================= TITLE ================= */
-
-.topbar-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.topbar-title .material-symbols-outlined {
-    font-size: 18px;
-    color: #fff3;
-}
-
-
-/* ================= BADGE ================= */
-
-.topbar-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 999px;
-    letter-spacing: .03em;
-
-    background: rgba(255,255,255,0.2);
-    color: white;
-
-    backdrop-filter: blur(6px);
-}
-
-
-/* ================= USER ================= */
-
-.topbar-user {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-
-    flex: 0 0 auto;
-    padding: 5px 12px 5px 5px;
-    border-radius: 999px;
-
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
-
-    backdrop-filter: blur(8px);
-
-    transition: all 0.25s ease;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.topbar-user:hover {
-    background: rgba(255,255,255,0.25);
-    transform: translateY(-1px);
-}
-
-
-/* ================= AVATAR ================= */
-
-.topbar-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-
-    background: linear-gradient(135deg, #1AC1DD, #0ea5e9);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    text-transform: uppercase;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-
-/* ================= USERNAME ================= */
-
-.topbar-username {
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
-}
-
-
-/* ================= SPACER ================= */
-
-.topbar-spacer {
-    flex: 1;
-}
-
-.topbar:hover::after {
-    left: 120%;
-}
+    .topbar-spacer {
+        flex: 1;
+    }
 
     .page-body {
         flex: 1;
@@ -556,26 +416,8 @@
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-
-    .alert-success {
-        background: #d1fae5 !important;
-        color: #065f46 !important;
-    }
-
-    .alert-danger {
-        background: #fee2e2 !important;
-        color: #991b1b !important;
-    }
-
-    .alert-warning {
-        background: #fef3c7 !important;
-        color: #92400e !important;
-    }
-
-    .alert-info {
-        background: #dbeafe !important;
-        color: #1e40af !important;
+        position: relative;
+        overflow: hidden;
     }
 
     .alert::before {
@@ -588,21 +430,36 @@
         border-radius: 12px 0 0 12px;
     }
 
-    .alert {
-        position: relative;
-        overflow: hidden;
+    .alert-success {
+        background: #d1fae5 !important;
+        color: #065f46 !important;
     }
 
     .alert-success::before {
         background: #10b981;
     }
 
+    .alert-danger {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+
     .alert-danger::before {
         background: #ef4444;
     }
 
+    .alert-warning {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+    }
+
     .alert-warning::before {
         background: #f59e0b;
+    }
+
+    .alert-info {
+        background: #dbeafe !important;
+        color: #1e40af !important;
     }
 
     .alert-info::before {
@@ -654,7 +511,6 @@
 
 {% block content %}
 {% set initials = user.username[:2] | upper %}
-
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <nav id="sidebar">
@@ -691,13 +547,12 @@
         <a class="nav-link {{ 'active' if '/admin/import' in request.url.path }}" href="/admin/import">
             <span class="material-symbols-outlined">upload_file</span>Import Data
         </a>
-        <a class="nav-link {{ 'active' if request.url.path == '/contact' }}" href="/contact">
+        <a class="nav-link {{ 'active' if '/admin/contact' in request.url.path }}" href="/admin/contact">
             <span class="material-symbols-outlined">mail</span>Contact Inquiries
         </a>
-        <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
+        <a class="nav-link {{ 'active' if '/admin/faq' in request.url.path }}" href="/admin/faq/edit">
             <span class="material-symbols-outlined">help</span>Edit FAQ
         </a>
-
         {% else %}
         <div class="section-label">Explore</div>
         <a class="nav-link {{ 'active' if request.url.path == '/home' }}" href="/home">
@@ -715,13 +570,12 @@
         <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
             <span class="material-symbols-outlined">help</span>FAQ
         </a>
-
         <div class="section-label">My Space</div>
         <a class="nav-link {{ 'active' if '/bookmarks' in request.url.path }}" href="/bookmarks">
             <span class="material-symbols-outlined">bookmark</span>Saved Events
         </a>
-        <a class="nav-link {{ 'active' if '/submissions' in request.url.path }}" href="/user/events/submissions">
-            <span class="material-symbols-outlined">Approval</span>Submissions
+        <a class="nav-link {{ 'active' if '/submissions' in request.url.path }}" href="/submissions">
+            <span class="material-symbols-outlined">approval</span>Submissions
         </a>
         {% endif %}
 
@@ -741,7 +595,6 @@
         <a class="nav-link {{ 'active' if request.url.path == '/disclaimer' }}" href="/disclaimer">
             <span class="material-symbols-outlined">priority_high</span>Disclaimer
         </a>
-
         <a class="nav-link nav-logout" href="/logout">
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
@@ -749,8 +602,10 @@
 
     <div class="sidebar-footer">
         <a href="/app" class="sidebar-user">
-            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 64px; height: 64px;">
-                <img src="/static/img/profile_pic.jpg" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
+                style="width: 30px; height: 30px;">
+                <img src="/static/img/profile_pic.jpg" alt="Profile"
+                    style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             <div class="user-info">
                 <div class="user-name">{{ user.username }}</div>
@@ -765,21 +620,19 @@
         <button class="topbar-toggle" id="menuToggle" aria-label="Toggle sidebar">
             <span class="material-symbols-outlined" style="font-size:20px">menu</span>
         </button>
-
         <div class="topbar-title">
             <span class="material-symbols-outlined">travel_explore</span>
             Caribbean Events
         </div>
-
         <div class="topbar-spacer"></div>
-
         {% if user.role == 'admin' %}
         <span class="topbar-badge">Admin</span>
         {% endif %}
-
         <a href="/app" class="topbar-user">
-            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 64px; height: 64px;">
-                <img src="/static/img/profile_pic.jpg" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
+                style="width: 30px; height: 30px;">
+                <img src="/static/img/profile_pic.jpg" alt="Profile"
+                    style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             <span class="topbar-username">{{ user.username }}</span>
         </a>
@@ -788,11 +641,12 @@
     {% if get_flashed_messages %}
     <div class="flash-zone mt-3">
         {% for message in get_flashed_messages(request) %}
-        <div
-            class="alert alert-{{ 'danger' if message.category == 'error' else message.category }} alert-dismissible fade show mb-2">
+        <div class="alert alert-{{ 'danger' if message.category == 'error' else message.category }} alert-dismissible fade show mb-2">
             <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">
-                {{ 'check_circle' if message.category == 'success' else 'warning' if message.category == 'warning' else
-                'info' if message.category == 'info' else 'error' }}
+                {{ 'check_circle' if message.category == 'success'
+                   else 'warning' if message.category == 'warning'
+                   else 'info' if message.category == 'info'
+                   else 'error' }}
             </span>
             {{ message.message }}
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
