@@ -12,3 +12,43 @@ async def list_users(request: Request, db: SessionDep, admin: AdminDep):
     user_repo = UserRepository(db)
     user_service = UserService(user_repo)
     return user_service.get_all_users()
+
+@router.post("/admin/users/{user_id}/disable")
+async def disable_user(
+    request: Request,
+    user_id: int,
+    db: SessionDep,
+    admin: AdminDep
+):
+    user_repo = UserRepository(db)
+    user_service = UserService(user_repo)
+
+    success = user_service.disable_user(user_id)
+    
+    if not success:
+        return RedirectResponse(url="/admin/users?error=User+not+found", status_code=303)
+
+    return RedirectResponse(url="/admin/users?message=User+disabled+successfully", status_code=303)
+
+@router.post("/admin/users/{user_id}/enable")
+async def enable_user(
+    request: Request,
+    user_id: int,
+    db: SessionDep,
+    admin: AdminDep
+):
+    user_repo = UserRepository(db)
+    user_service = UserService(user_repo)
+
+    success = user_service.enable_user(user_id)
+    
+    if not success:
+        return RedirectResponse(
+            url="/admin/users?error=Could+not+enable+user", 
+            status_code=303
+        )
+
+    return RedirectResponse(
+        url="/admin/users?message=User+enabled+successfully", 
+        status_code=303
+    )
