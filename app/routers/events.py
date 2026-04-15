@@ -181,30 +181,45 @@ async def user_event_create(
     description: str = Form(...),
     island: str = Form(...),
     venue: str = Form(...),
-    date: str = Form(...),
-    end_date: str = Form(""),
+    event_date: str = Form(...),
+    event_time: str = Form(...),
+    end_date_only: str = Form(""),
+    end_time_only: str = Form(""),
     price: str = Form(""),
     category: str = Form(...),
     source_url: str = Form(""),
     image_url: str = Form(""),
     status: str = "pending"
 ):
+    try:
+        start_dt = datetime.strptime(f"{event_date} {event_time}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        return RedirectResponse(url="/user/events/submissions?error=invalid_date", status_code=303)
+
+    end_dt = None
+    if end_date_only and end_time_only:
+        try:
+            end_dt = datetime.strptime(f"{end_date_only} {end_time_only}", "%Y-%m-%d %H:%M")
+        except ValueError:
+            pass
+
     data = EventCreate(
         title=title,
         description=description,
         island=island,
         venue=venue,
-        date=datetime.fromisoformat(date),
-        end_date=datetime.fromisoformat(end_date) if end_date else None,
+        date=start_dt,
+        end_date=end_dt,
         price=float(price) if price else None,
         category=category,
         source_url=source_url or None,
         image_url=image_url or None,
         status=status,
     )
+    
     EventService(EventRepository(db)).create(data, user_id=user.id)
     return RedirectResponse(url="/user/events/submissions", status_code=303)
-
+    
 @router.get("/user/events/submissions", response_class=HTMLResponse)
 async def user_event_submissions(request: Request, db: SessionDep, user: AuthDep):
     events = EventService(EventRepository(db)).repo.get_by_user(user.id)
