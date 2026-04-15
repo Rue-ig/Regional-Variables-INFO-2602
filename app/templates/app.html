@@ -20,14 +20,14 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-4">
-                        <div class="position-relative">
+                        <div class="position-relative flex-shrink-0">
                             <img src="{{ user.avatar_url if user.avatar_url else '/static/img/profile_pic.jpg' }}" 
                                  class="rounded-circle border shadow-sm"
-                                 style="width:64px; height:64px; object-fit:cover;" 
+                                 style="width:64px; height:64px; object-fit:cover; flex-shrink: 0;" 
                                  alt="{{ user.username }}">
                                  
-                            <button class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-0"
-                                    style="width:22px; height:22px;" 
+                            <button class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-0 d-flex align-items-center justify-content-center shadow-sm"
+                                    style="width:24px; height:24px; transform: translate(10%, 10%);" 
                                     data-bs-toggle="modal"
                                     data-bs-target="#editProfileModal" 
                                     title="Change photo">
@@ -85,17 +85,18 @@
                     <label class="form-label d-block text-muted small fw-bold mb-3">PROFILE PICTURE</label>
                     <input type="file" name="profile_pic" id="profile_pic" class="d-none" accept="image/*" onchange="previewImage(this)">
                     <div class="position-relative d-inline-block">
-                        <img src="/static/uploads/avatars/c9e20be61aa54c96a58828d8a84e1db2.png" 
-                         class="rounded-circle border shadow-sm" 
-                         style="width:64px; height:64px; object-fit:cover; flex-shrink: 0;" 
-                         alt="bob">
-                        <button type="button" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center" 
-                                style="width:32px; height:32px;"
+                        <img id="avatar-preview" 
+                             src="{{ user.avatar_url if user.avatar_url else '/static/img/profile_pic.jpg' }}" 
+                             class="rounded-circle border shadow-sm" 
+                             style="width:80px; height:80px; object-fit:cover; flex-shrink: 0;" 
+                             alt="Avatar Preview">
+                        <button type="button" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow" 
+                                style="width:32px; height:32px; transform: translate(10%, 10%);"
                                 onclick="document.getElementById('profile_pic').click()">
                             <span class="material-symbols-outlined fs-6">photo_camera</span>
                         </button>
                     </div>
-                    <div class="form-text mt-2">JPG, PNG or WebP · Max 2MB</div>
+                    <div class="form-text mt-3">JPG, PNG or WebP · Max 2MB</div>
                 </div>
 
                 <div class="mb-3">
