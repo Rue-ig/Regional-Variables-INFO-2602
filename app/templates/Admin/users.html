@@ -39,9 +39,13 @@
                                 {{ u.created_at.strftime('%Y-%m-%d') if u.created_at else 'N/A' }}
                             </td>
                             <td class="text-end pe-4">
-                                <button class="btn btn-sm btn-outline-danger" title="Disable User">
-                                    <span class="material-symbols-outlined fs-6">block</span>
-                                </button>
+                                <form method="POST" action="/admin/users/{{ u.id }}/disable" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                            title="Disable User"
+                                            onclick="return confirm('Disable this user? They will no longer be able to log in.')">
+                                        <span class="material-symbols-outlined fs-6">block</span>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}
