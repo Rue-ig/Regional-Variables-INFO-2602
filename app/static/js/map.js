@@ -64,7 +64,7 @@ function makeMarkerIcon(category, upcoming) {
         <path d="M${size/2} 0C${size*.224} 0 0 ${size*.224} 0 ${size/2}c0 ${size*.345} ${size/2} ${size*.286} ${size/2} ${size*.286}S${size} ${size*.845} ${size} ${size/2}C${size} ${size*.224} ${size*.776} 0 ${size/2} 0z"
               fill="${cat.color}" />
         <circle cx="${size/2}" cy="${size/2}" r="${size*.28}" fill="rgba(255,255,255,0.95)" />
-        <text x="${size/2}" y="${size/2+5}" text-anchor="middle" font-size="${size*.3}" font-family="system-ui" fill="${cat.color}" font-weight="700">${cat.icon}</text>
+        <text x="${size/2}" y="${size/2+5}" text-anchor="middle" font-size="${size*.3}" font-family="Poppins, sans-serif" fill="${cat.color}" font-weight="700">${cat.icon}</text>
       </svg>
     </div>`;
   return L.divIcon({
@@ -132,7 +132,7 @@ function makePopup(event) {
       </a>
     </div>`;
 
-  return `<div style="width:240px;border-radius:12px;overflow:hidden;font-family:system-ui,sans-serif;">
+  return `<div style="width:240px;border-radius:12px;overflow:hidden;font-family:Poppins,sans-serif;">
     ${header}${body}${footer}
   </div>`;
 }
