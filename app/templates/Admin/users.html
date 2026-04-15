@@ -47,7 +47,7 @@
                                         </button>
                                     </form>
                                 {% else %}
-                                    <form method="POST" action="/admin/users/{{ u.id }}/enable" class="d-inline">
+                                    <form method="POST" action="/users/{{ u.id }}/enable" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-outline-success" title="Enable User"
                                                 onclick="return confirm('Restore access for this user?')">
                                             <span class="material-symbols-outlined fs-6">check_circle</span>
