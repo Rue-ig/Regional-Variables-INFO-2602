@@ -23,6 +23,17 @@ class UserRepository:
             self.db.rollback()
             raise
 
+    def save(self, user: User) -> User:
+        try:
+            self.db.add(user)
+            self.db.commit()
+            self.db.refresh(user)
+            return user
+        except Exception as e:
+            logger.error(f"An error occurred while saving user: {e}")
+            self.db.rollback()
+            raise
+
     def search_users(self, query: str, page:int=1, limit:int=10) -> Tuple[list[User], Pagination]:
         offset = (page - 1) * limit
         db_qry = select(User)
