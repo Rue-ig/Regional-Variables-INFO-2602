@@ -74,28 +74,26 @@
   .action-card .card-body { padding: 1.5rem; }
 
   .btn-edit {
-    background: linear-gradient(135deg, #FB5607, #EEB902);
+    background: linear-gradient(135deg, #6366f1, #818cf8);
     color: #fff;
     border: none;
-    border-radius: 12px;
-    padding: 12px 0;
+    border-radius: 10px;
+    padding: 10px 0;
     font-weight: 700;
     font-size: 14px;
-    letter-spacing: 0.03em;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.25s ease;
+    gap: 6px;
+    transition: opacity .15s, transform .15s;
     text-decoration: none;
     margin-bottom: 10px;
-    box-shadow: 0 8px 20px rgba(251, 86, 7, 0.35);
   }
 
   .btn-edit:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 30px rgba(251, 86, 7, 0.5);
+    opacity: .9;
+    transform: translateY(-1px);
     color: #fff;
   }
 
@@ -304,19 +302,16 @@
     padding: 12px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg, #FB5607, #EEB902);
+    background: #dc2626;
     color: #fff;
     font-weight: 700;
     font-size: 14px;
-    letter-spacing: 0.03em;
     cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 20px rgba(251, 86, 7, 0.35);
+    transition: opacity .15s;
   }
 
   .btn-confirm-delete:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 30px rgba(251, 86, 7, 0.5);
+    opacity: .88;
   }
 </style>
 {% endblock %}
