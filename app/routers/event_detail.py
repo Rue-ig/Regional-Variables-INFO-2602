@@ -76,65 +76,89 @@ async def event_detail(request: Request, event_id: int, db: SessionDep, user: Us
     )
 
 @router.get("/user/events/{id}", response_class=HTMLResponse)
-async def user_event_detail(request: Request, id: int, db: SessionDep, user: UserDep):
-    events = EventService(EventRepository(db)).repo.get_by_user(user.id)
-    event = next((e for e in events if e.id == id), None)
+# DO NOT TOUCH THIS !!!!! function wasn't meant to be this detail. 
+#   Going to the user detail page gives access to the other route that provides this
 
+# async def user_event_detail(request: Request, id: int, db: SessionDep, user: UserDep):
+#     events = EventService(EventRepository(db)).repo.get_by_user(user.id)
+#     event = next((e for e in events if e.id == id), None)
+
+#     if event is None:
+#         raise HTTPException(status_code=404, detail="Event not found")
+
+#     review_svc = ReviewService(ReviewRepository(db))
+#     photo_svc = PhotoService(PhotoRepository(db))
+
+#     reviews = review_svc.get_for_event(id)
+#     avg_rating = review_svc.get_average_rating(id)
+#     photos = photo_svc.get_for_event(id)
+
+#     user_albums = (
+#         db.exec(
+#             select(Album)
+#             .where(Album.user_id == user.id)
+#             .options(selectinload(Album.events))
+#         ).all()
+#         if user
+#         else []
+#     )
+#     status_row = (
+#         db.exec(
+#             select(UserEventStatus).where(
+#                 UserEventStatus.user_id == user.id,
+#                 UserEventStatus.event_id == id,
+#             )
+#         ).first()
+#         if user
+#         else None
+#     )
+
+#     user_review_votes: dict[int, str] = {}
+#     if user:
+#         review_ids = [r.id for r in reviews]
+#         if review_ids:
+#             vote_rows = db.exec(
+#                 select(ReviewVote).where(
+#                     ReviewVote.user_id == user.id,
+#                     ReviewVote.review_id.in_(review_ids),
+#                 )
+#             ).all()
+#             user_review_votes = {v.review_id: v.vote for v in vote_rows}
+
+#     return templates.TemplateResponse(
+#         request=request,
+#         name="User/events/detail.html",
+#         context={
+#             "event": event,
+#             "user": user,
+#             "reviews": reviews,
+#             "avg_rating": avg_rating,
+#             "photos": photos,
+#             "is_bookmarked": False,
+#             "already_reviewed": any(r.user_id == user.id for r in reviews) if user else False,
+#             "user_albums": user_albums,
+#             "user_status": status_row.status if status_row else None,
+#             "user_review_votes": user_review_votes,
+#         },
+#     )
+async def user_event_detail(
+    request: Request,
+    id: int,
+    db: SessionDep,
+    user: UserDep
+):
+    events = EventService(EventRepository(db)).repo.get_by_user(user.id)
+    event = None
+    for e in events:
+        if e.id == id:
+            event = e
+            break
+    
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
 
-    review_svc = ReviewService(ReviewRepository(db))
-    photo_svc = PhotoService(PhotoRepository(db))
-
-    reviews = review_svc.get_for_event(id)
-    avg_rating = review_svc.get_average_rating(id)
-    photos = photo_svc.get_for_event(id)
-
-    user_albums = (
-        db.exec(
-            select(Album)
-            .where(Album.user_id == user.id)
-            .options(selectinload(Album.events))
-        ).all()
-        if user
-        else []
-    )
-    status_row = (
-        db.exec(
-            select(UserEventStatus).where(
-                UserEventStatus.user_id == user.id,
-                UserEventStatus.event_id == id,
-            )
-        ).first()
-        if user
-        else None
-    )
-
-    user_review_votes: dict[int, str] = {}
-    if user:
-        review_ids = [r.id for r in reviews]
-        if review_ids:
-            vote_rows = db.exec(
-                select(ReviewVote).where(
-                    ReviewVote.user_id == user.id,
-                    ReviewVote.review_id.in_(review_ids),
-                )
-            ).all()
-            user_review_votes = {v.review_id: v.vote for v in vote_rows}
-
     return templates.TemplateResponse(
         request=request,
-        name="User/events/detail.html",
-        context={
-            "event": event,
-            "user": user,
-            "reviews": reviews,
-            "avg_rating": avg_rating,
-            "photos": photos,
-            "is_bookmarked": False,
-            "already_reviewed": any(r.user_id == user.id for r in reviews) if user else False,
-            "user_albums": user_albums,
-            "user_status": status_row.status if status_row else None,
-            "user_review_votes": user_review_votes,
-        },
+        name="User/events/user-event-detail.html",
+        context={"event": event, "user": user},
     )
