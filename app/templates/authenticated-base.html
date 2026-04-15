@@ -352,6 +352,47 @@
         backdrop-filter: blur(6px);
     }
 
+    .topbar-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        flex: 0 0 auto;
+        padding: 5px 12px 5px 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .topbar-user:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-1px);
+    }
+
+    .topbar-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1AC1DD, #0ea5e9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .topbar-username {
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+    }
+
     .topbar-spacer {
         flex: 1;
     }
@@ -433,10 +474,6 @@
         z-index: 1039;
     }
 
-    .sidebar-overlay.active {
-        display: block;
-    }
-
     @media (max-width: 768px) {
         #sidebar {
             transform: translateX(calc(-1 * var(--cb-sidebar-w)));
@@ -448,6 +485,10 @@
 
         #content {
             margin-left: 0 !important;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
         }
 
         .page-body {
@@ -477,6 +518,7 @@
         <path d="M0 30 C50 10 100 50 150 30 C180 18 220 38 260 25 L260 60 L0 60 Z" fill="white" />
         <path d="M0 40 C60 20 110 55 170 38 C205 28 235 44 260 35 L260 60 L0 60 Z" fill="white" opacity=".5" />
     </svg>
+
     <a class="sidebar-brand" href="/">
         <div style="background-color: white; border-radius: 4px;">
             <img src="{{ url_for('static', path='img/logo-no.png') }}" alt="Logo" style="width: 40px; height: 40px;">
@@ -486,6 +528,7 @@
             <div class="brand-tagline">Discover the Islands</div>
         </div>
     </a>
+
     <div class="sidebar-nav">
         {% if user.role == 'admin' %}
         <div class="section-label">Administration</div>
@@ -535,6 +578,7 @@
             <span class="material-symbols-outlined">approval</span>Submissions
         </a>
         {% endif %}
+
         <div class="section-label">General</div>
         <a class="nav-link {{ 'active' if request.url.path == '/about' }}" href="/about">
             <span class="material-symbols-outlined">info</span>About Dwivé
@@ -555,6 +599,7 @@
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
     </div>
+
     <div class="sidebar-footer">
         <a href="/app" class="sidebar-user">
             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
@@ -583,7 +628,6 @@
         {% if user.role == 'admin' %}
         <span class="topbar-badge">Admin</span>
         {% endif %}
-
         <a href="/app" class="topbar-user">
             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
                 style="width: 30px; height: 30px;">
@@ -597,13 +641,12 @@
     {% if get_flashed_messages %}
     <div class="flash-zone mt-3">
         {% for message in get_flashed_messages(request) %}
-        <div
-            class="alert alert-{{ 'danger' if message.category == 'error' else message.category }} alert-dismissible fade show mb-2">
+        <div class="alert alert-{{ 'danger' if message.category == 'error' else message.category }} alert-dismissible fade show mb-2">
             <span class="material-symbols-outlined" style="font-size:18px;flex-shrink:0">
                 {{ 'check_circle' if message.category == 'success'
-                else 'warning' if message.category == 'warning'
-                else 'info' if message.category == 'info'
-                else 'error' }}
+                   else 'warning' if message.category == 'warning'
+                   else 'info' if message.category == 'info'
+                   else 'error' }}
             </span>
             {{ message.message }}
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -641,6 +684,5 @@
         });
     })();
 </script>
-
 {% block subpage_scripts %}{% endblock %}
 {% endblock %}
