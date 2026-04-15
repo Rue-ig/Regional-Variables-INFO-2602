@@ -352,47 +352,6 @@
         backdrop-filter: blur(6px);
     }
 
-    .topbar-user {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        flex: 0 0 auto;
-        padding: 5px 12px 5px 5px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(8px);
-        transition: all 0.25s ease;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .topbar-user:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-1px);
-    }
-
-    .topbar-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #1AC1DD, #0ea5e9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 700;
-        color: #fff;
-        text-transform: uppercase;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .topbar-username {
-        font-size: 13px;
-        font-weight: 600;
-        color: white;
-    }
-
     .topbar-spacer {
         flex: 1;
     }
@@ -512,6 +471,7 @@
 {% block content %}
 {% set initials = user.username[:2] | upper %}
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <nav id="sidebar">
     <svg class="sidebar-wave" viewBox="0 0 260 60" xmlns="http://www.w3.org/2000/svg">
         <path d="M0 30 C50 10 100 50 150 30 C180 18 220 38 260 25 L260 60 L0 60 Z" fill="white" />
@@ -609,6 +569,7 @@
         </a>
     </div>
 </nav>
+
 <div id="content">
     <div class="topbar">
         <button class="topbar-toggle" id="menuToggle" aria-label="Toggle sidebar">
@@ -622,6 +583,7 @@
         {% if user.role == 'admin' %}
         <span class="topbar-badge">Admin</span>
         {% endif %}
+
         <a href="/app" class="topbar-user">
             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center overflow-hidden"
                 style="width: 30px; height: 30px;">
@@ -631,6 +593,7 @@
             <span class="topbar-username">{{ user.username }}</span>
         </a>
     </div>
+
     {% if get_flashed_messages %}
     <div class="flash-zone mt-3">
         {% for message in get_flashed_messages(request) %}
@@ -648,10 +611,12 @@
         {% endfor %}
     </div>
     {% endif %}
+
     <main class="page-body">
         {% block subpage_content %}{% endblock %}
     </main>
 </div>
+
 <script>
     (function () {
         const sidebar = document.getElementById('sidebar');
@@ -659,6 +624,7 @@
         const overlay = document.getElementById('sidebarOverlay');
         const btn = document.getElementById('menuToggle');
         const isMobile = () => window.innerWidth <= 768;
+
         btn.addEventListener('click', () => {
             if (isMobile()) {
                 sidebar.classList.toggle('mobile-open');
@@ -668,11 +634,13 @@
                 content.classList.toggle('expanded');
             }
         });
+
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('mobile-open');
             overlay.classList.remove('active');
         });
     })();
 </script>
+
 {% block subpage_scripts %}{% endblock %}
 {% endblock %}
