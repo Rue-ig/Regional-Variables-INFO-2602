@@ -142,3 +142,58 @@ async def review_report(
     db.commit()
 
     return {"message": f"Report {status.value}", "report_id": report_id}
+
+@router.post("/events/{event_id}/report")
+async def report_event_form(
+    request: Request,
+    event_id: int,
+    user: AuthDep,
+    db: SessionDep,
+    reason: ReportReason = Form(...),
+    details: Optional[str] = Form(None),
+):
+
+    if not user:
+        return RedirectResponse(url="/login?error=Please+login+to+report", status_code=303)
+
+    event = db.get(Event, event_id)
+    if not event:
+        return RedirectResponse(
+            url=f"/events/{event_id}?error=Event+not+found", 
+            status_code=303
+        )
+
+    if event.created_by == user.id:
+        return RedirectResponse(
+            url=f"/events/{event_id}?error=You+cannot+report+your+own+event", 
+            status_code=303
+        )
+
+    existing = db.exec(
+        select(Report).where(
+            Report.event_id == event_id,
+            Report.user_id == user.id
+        )
+    ).first()
+
+    if existing:
+        return RedirectResponse(
+            url=f"/events/{event_id}?error=You+have+already+reported+this+event", 
+            status_code=303
+        )
+
+    report = Report(
+        user_id=user.id,
+        event_id=event_id,
+        reason=reason,
+        details=details,
+        status=ReportStatus.PENDING
+    )
+
+    db.add(report)
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/events/{event_id}?message=Report+submitted+successfully", 
+        status_code=303
+    )
