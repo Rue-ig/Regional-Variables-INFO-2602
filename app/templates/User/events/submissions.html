@@ -48,9 +48,7 @@
           {% if event.image_url %}
             <img src="{{ event.image_url }}" class="card-img-top" style="height:200px; object-fit:cover;" alt="{{ event.title }}">
           {% else %}
-            <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px;">
-              <span class="material-symbols-outlined display-4 text-muted opacity-25">image</span>
-            </div>
+            <img src="{{ url_for('static', path='img/logo-no.png') }}" class="card-img-top" style="height:200px; object-fit:cover;" alt="{{ event.title }}">
           {% endif %}
 
           <div class="position-absolute top-0 end-0 m-3 d-flex flex-column gap-2 align-items-end">
