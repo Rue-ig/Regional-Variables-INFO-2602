@@ -31,6 +31,7 @@ async def submit_review(
 
     return RedirectResponse(url=f"/events/{event_id}", status_code=303)
 
+
 @router.post("/reviews/{review_id}/delete")
 async def delete_review(
     request: Request,
@@ -48,7 +49,6 @@ async def delete_review(
     if user.role == "admin" or review.user_id == user.id:
         service.delete(review_id)
         flash(request, "Review removed.", "success")
-
     else:
         flash(request, "Access denied.", "error")
 
@@ -76,7 +76,6 @@ async def vote_review(
     if vote == "none":
         if existing:
             db.delete(existing)
-
     elif vote in ["up", "down"]:
         if existing:
             existing.vote = vote
@@ -88,14 +87,16 @@ async def vote_review(
     upvotes = len(
         db.exec(
             select(ReviewVote).where(
-                ReviewVote.review_id == review_id, ReviewVote.vote == "up"
+                ReviewVote.review_id == review_id,
+                ReviewVote.vote == "up",
             )
         ).all()
     )
     downvotes = len(
         db.exec(
             select(ReviewVote).where(
-                ReviewVote.review_id == review_id, ReviewVote.vote == "down"
+                ReviewVote.review_id == review_id,
+                ReviewVote.vote == "down",
             )
         ).all()
     )
