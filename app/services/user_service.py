@@ -7,20 +7,20 @@ class UserService:
     def get_all_users(self):
         return self.user_repo.get_all_users()
 
-    def disable_user(self, user_id: int) -> bool:
-        user = self.user_repo.get_user_by_id(user_id)
-        if not user:
-            return False
-        
-        user.is_active = False
-        self.user_repo.save(user)
-        return True
-
     def enable_user(self, user_id: int) -> bool:
-        user = self.user_repo.get_user_by_id(user_id)
+        user = self.user_repo.get_by_id(user_id)
         if not user:
             return False
         
         user.is_active = True
+        self.user_repo.save(user)
+        return True
+
+    def disable_user(self, user_id: int) -> bool:
+        user = self.user_repo.get_by_id(user_id)
+        if not user:
+            return False
+        
+        user.is_active = False
         self.user_repo.save(user)
         return True
