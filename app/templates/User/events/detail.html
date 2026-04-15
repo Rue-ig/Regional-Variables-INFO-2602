@@ -887,40 +887,38 @@
   </div>
 </div>
 
-<div class="modal fade" id="reportModal" tabindex="-1">
+<div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Report Item</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title" id="reportModalLabel">Report This Event</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="reportForm" method="post">
+      <form id="reportForm" method="POST" action="/events/{{ event.id }}/report">
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Reason *</label>
+            <label class="form-label fw-semibold">Reason for reporting <span class="text-danger">*</span></label>
             <select name="reason" class="form-select" required>
               <option value="">Select a reason...</option>
               <option value="Spam">Spam or advertising</option>
-              <option value="Inappropriate">Inappropriate content</option>
-              <option value="Harassment">Harassment</option>
-              <option value="Offensive">Offensive language</option>
+              <option value="Inappropriate">Inappropriate or offensive content</option>
+              <option value="Misinformation">Misinformation or fake event</option>
+              <option value="Harassment">Harassment or abuse</option>
               <option value="Other">Other</option>
             </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Additional details (optional)</label>
-            <textarea name="details" class="form-control" rows="3"
-              placeholder="Please provide more context..."></textarea>
+            <textarea name="details" class="form-control" rows="4" 
+                      placeholder="Please provide more context about why you're reporting this event..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <form method="POST" action="/events/{{ event.id }}/report" class="d-inline">
-              <button type="submit" class="btn btn-danger">
-                  <span class="material-symbols-outlined">flag</span>
-                  Submit Report
-              </button>
-          </form>
+          <button type="submit" class="btn btn-danger">
+            <span class="material-symbols-outlined me-1">flag</span>
+            Submit Report
+          </button>
         </div>
       </form>
     </div>
