@@ -58,23 +58,6 @@
         flex-shrink: 0;
     }
 
-    .brand-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, var(--cb-coral) 0%, #ff8c57 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .brand-icon svg {
-        width: 20px;
-        height: 20px;
-        fill: #fff;
-    }
-
     .brand-text {
         line-height: 1.1;
     }
@@ -267,6 +250,8 @@
         display: flex;
         flex-direction: column;
         overflow: visible !important;
+        background: linear-gradient(to right, rgba(0, 0, 0, 0.02), transparent 60px);
+        box-shadow: inset 10px 0 20px rgba(0, 0, 0, 0.04);
     }
 
     #content.expanded {
@@ -392,12 +377,6 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
-    .topbar-username {
-        font-size: 13px;
-        font-weight: 600;
-        color: white;
-    }
-
     .page-body {
         flex: 1;
         padding: 24px 24px 40px;
@@ -475,6 +454,10 @@
         z-index: 1039;
     }
 
+    .sidebar-overlay.active {
+        display: block;
+    }
+
     @media (max-width: 768px) {
         #sidebar {
             transform: translateX(calc(-1 * var(--cb-sidebar-w)));
@@ -486,10 +469,6 @@
 
         #content {
             margin-left: 0 !important;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
         }
 
         .page-body {
@@ -549,10 +528,10 @@
         <a class="nav-link {{ 'active' if '/admin/import' in request.url.path }}" href="/admin/import">
             <span class="material-symbols-outlined">upload_file</span>Import Data
         </a>
-        <a class="nav-link {{ 'active' if request.url.path == '/contact' }}" href="/contact">
+        <a class="nav-link {{ 'active' if '/admin/contact' in request.url.path }}" href="/admin/contact">
             <span class="material-symbols-outlined">mail</span>Contact Inquiries
         </a>
-        <a class="nav-link {{ 'active' if request.url.path == '/faq' }}" href="/faq">
+        <a class="nav-link {{ 'active' if '/admin/faq' in request.url.path }}" href="/admin/faq/edit">
             <span class="material-symbols-outlined">help</span>Edit FAQ
         </a>
 
@@ -578,6 +557,9 @@
         <a class="nav-link {{ 'active' if '/bookmarks' in request.url.path }}" href="/bookmarks">
             <span class="material-symbols-outlined">bookmark</span>Saved Events
         </a>
+        <a class="nav-link {{ 'active' if '/submissions' in request.url.path }}" href="/submissions">
+            <span class="material-symbols-outlined">approval</span>Submissions
+        </a>
         {% endif %}
 
         <div class="section-label">General</div>
@@ -596,7 +578,6 @@
         <a class="nav-link {{ 'active' if request.url.path == '/disclaimer' }}" href="/disclaimer">
             <span class="material-symbols-outlined">priority_high</span>Disclaimer
         </a>
-
         <a class="nav-link nav-logout" href="/logout">
             <span class="material-symbols-outlined">logout</span>Sign Out
         </a>
@@ -618,18 +599,14 @@
         <button class="topbar-toggle" id="menuToggle" aria-label="Toggle sidebar">
             <span class="material-symbols-outlined" style="font-size:20px">menu</span>
         </button>
-
         <div class="topbar-title">
             <span class="material-symbols-outlined">travel_explore</span>
             Caribbean Events
         </div>
-
         <div class="topbar-spacer"></div>
-
         {% if user.role == 'admin' %}
         <span class="topbar-badge">Admin</span>
         {% endif %}
-
         <a href="/app" class="topbar-user">
             <div class="topbar-avatar">{{ initials }}</div>
             <span class="topbar-username">{{ user.username }}</span>
@@ -680,7 +657,15 @@
             sidebar.classList.remove('mobile-open');
             overlay.classList.remove('active');
         });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && overlay.classList.contains('active')) {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+            }
+        });
     })();
 </script>
+
 {% block subpage_scripts %}{% endblock %}
 {% endblock %}
